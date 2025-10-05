@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
             //comment Example\
         }
             val button_menu: Button = findViewById(R.id.button_menu)
+            val button_add: Button = findViewById(R.id.button_add)
 
             button_menu.setOnClickListener {
                 val popup = PopupMenu(this, button_menu)
@@ -57,6 +58,10 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 popup.show()
+            }
+
+            button_add.setOnClickListener {
+                startActivity(Intent(this, AddUserActivity::class.java))
             }
         }
     }
