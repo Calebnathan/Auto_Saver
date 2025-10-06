@@ -1,5 +1,6 @@
 package com.example.auto_saver
 
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -8,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -21,11 +23,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.auto_saver.adapters.GroupedExpenseAdapter
 import com.example.auto_saver.models.ExpenseListItem
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -40,12 +44,27 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvExpenseCount: TextView
     private lateinit var emptyStateLayout: LinearLayout
 
+    // Goal progress views
+    private lateinit var btnManageGoals: MaterialButton
+    private lateinit var progressGoal: ProgressBar
+    private lateinit var tvMinGoal: TextView
+    private lateinit var tvMaxGoal: TextView
+    private lateinit var tvCurrentSpent: TextView
+    private lateinit var tvGoalStatus: TextView
+
+    // Filter button
+    private lateinit var btnFilter: MaterialButton
+
     private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
     private lateinit var groupedExpenseAdapter: GroupedExpenseAdapter
 
     private val categoryCache = mutableMapOf<Int, String>()
-    private val expandedCategories = mutableSetOf<Int>() // Track which categories are expanded
+    private val expandedCategories = mutableSetOf<Int>()
+
+    // Date filter state
+    private var filterStartDate: String? = null
+    private var filterEndDate: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,14 +84,16 @@ class MainActivity : AppCompatActivity() {
         setupMenu()
         setupFabs()
         setupRecyclerViews()
+        setupGoalProgress()
+        setupFilterButton()
         loadCategories()
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh when returning from add screens
         loadCategories()
         loadExpenses()
+        loadGoalProgress()
     }
 
     private fun initializeViews() {
@@ -84,7 +105,17 @@ class MainActivity : AppCompatActivity() {
         tvExpenseCount = findViewById(R.id.tv_expense_count)
         emptyStateLayout = findViewById(R.id.empty_state_layout)
 
-        // Load user's name in profile card
+        // Goal progress views
+        btnManageGoals = findViewById(R.id.btn_manage_goals)
+        progressGoal = findViewById(R.id.progress_goal)
+        tvMinGoal = findViewById(R.id.tv_min_goal)
+        tvMaxGoal = findViewById(R.id.tv_max_goal)
+        tvCurrentSpent = findViewById(R.id.tv_current_spent)
+        tvGoalStatus = findViewById(R.id.tv_goal_status)
+
+        // Filter button
+        btnFilter = findViewById(R.id.btn_filter)
+
         loadUserProfile()
     }
 
@@ -249,6 +280,86 @@ class MainActivity : AppCompatActivity() {
         loadExpenses() // Refresh the list
     }
 
+    private fun setupGoalProgress() {
+        btnManageGoals.setOnClickListener {
+            val intent = Intent(this, GoalsActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    private fun setupFilterButton() {
+        btnFilter.setOnClickListener {
+            showFilterOptions()
+        }
+    }
+
+    private fun showFilterOptions() {
+        val options = arrayOf("All Time", "This Month", "Last Month", "Custom Range", "Clear Filter")
+
+        AlertDialog.Builder(this)
+            .setTitle("Filter Expenses")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> clearFilter()
+                    1 -> filterThisMonth()
+                    2 -> filterLastMonth()
+                    3 -> showCustomDateRange()
+                    4 -> clearFilter()
+                }
+            }
+            .show()
+    }
+
+    private fun clearFilter() {
+        filterStartDate = null
+        filterEndDate = null
+        btnFilter.text = "Filter"
+        loadExpenses()
+    }
+
+    private fun filterThisMonth() {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        filterStartDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+        filterEndDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+        btnFilter.text = "This Month"
+        loadExpenses()
+    }
+
+    private fun filterLastMonth() {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.MONTH, -1)
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        filterStartDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+        filterEndDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+        btnFilter.text = "Last Month"
+        loadExpenses()
+    }
+
+    private fun showCustomDateRange() {
+        val calendar = Calendar.getInstance()
+
+        DatePickerDialog(this, { _, year, month, day ->
+            calendar.set(year, month, day)
+            filterStartDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+            DatePickerDialog(this, { _, endYear, endMonth, endDay ->
+                calendar.set(endYear, endMonth, endDay)
+                filterEndDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+                btnFilter.text = "Custom"
+                loadExpenses()
+            }, year, month, day).show()
+
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
     private fun showAddPopupMenu() {
         val popup = PopupMenu(this, fabAdd)
         popup.menuInflater.inflate(R.menu.add_menu, popup.menu)
@@ -256,13 +367,20 @@ class MainActivity : AppCompatActivity() {
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_add_expense -> {
-                    // Show Add Expense Dialog
                     showAddExpenseDialog()
                     true
                 }
                 R.id.action_create_category -> {
-                    // Show Create Category Dialog
                     showAddCategoryDialog()
+                    true
+                }
+                R.id.action_remove_categories -> {
+                    showRemoveCategoriesDialog()
+                    true
+                }
+                R.id.action_analytics -> {
+                    val intent = Intent(this, CategoryAnalyticsActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 else -> false
@@ -401,38 +519,106 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDeleteCategoryDialog(category: Category) {
-        AlertDialog.Builder(this)
-            .setTitle("Delete Category")
-            .setMessage("Are you sure you want to delete '${category.name}'?\n\nNote: This will only delete the category if it's not being used by any expenses.")
-            .setPositiveButton("Delete") { _, _ ->
-                deleteCategory(category)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun deleteCategory(category: Category) {
+    private fun showRemoveCategoriesDialog() {
         lifecycleScope.launch {
-            // Check if category is being used by any expenses
-            val expenses = database.expenseDao().getExpensesByUser(userPrefs.getCurrentUserId())
-            val isUsed = expenses.any { it.categoryId == category.id }
-
-            if (isUsed) {
-                runOnUiThread {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Cannot delete category '${category.name}' - it's being used by expenses",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+            val userId = userPrefs.getCurrentUserId()
+            if (userId == -1) {
+                Toast.makeText(this@MainActivity, "Please log in first", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
-            database.categoryDao().deleteCategory(category)
-            runOnUiThread {
-                Toast.makeText(this@MainActivity, "Category deleted", Toast.LENGTH_SHORT).show()
-                loadCategories() // Refresh the list
+            val categories = database.categoryDao().getCategoriesByUser(userId)
+
+            if (categories.isEmpty()) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "No categories to remove",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+
+            // Get expense counts for each category
+            val expenses = database.expenseDao().getExpensesByUser(userId)
+            val categoryExpenseCounts = categories.map { category ->
+                val count = expenses.count { it.categoryId == category.id }
+                Pair(category, count)
+            }
+
+            val categoryNames = categoryExpenseCounts.map { (category, count) ->
+                if (count > 0) {
+                    "${category.name} ($count expenses)"
+                } else {
+                    category.name
+                }
+            }.toTypedArray()
+
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle("Remove Category")
+                .setItems(categoryNames) { _, which ->
+                    val (selectedCategory, expenseCount) = categoryExpenseCounts[which]
+                    confirmCategoryDeletion(selectedCategory, expenseCount)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun confirmCategoryDeletion(category: Category, expenseCount: Int) {
+        val message = if (expenseCount > 0) {
+            "Are you sure you want to delete '${category.name}'?\n\n⚠️ WARNING: This category has $expenseCount expense(s) associated with it. All these expenses will also be permanently deleted!\n\nThis action cannot be undone."
+        } else {
+            "Are you sure you want to delete '${category.name}'?\n\nThis action cannot be undone."
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Confirm Deletion")
+            .setMessage(message)
+            .setPositiveButton("Delete") { _, _ ->
+                deleteCategory(category, expenseCount)
+            }
+            .setNegativeButton("Cancel", null)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .show()
+    }
+
+    private fun deleteCategory(category: Category, expenseCount: Int) {
+        lifecycleScope.launch {
+            try {
+                // Delete all expenses associated with this category first
+                if (expenseCount > 0) {
+                    val expenses = database.expenseDao().getExpensesByUser(userPrefs.getCurrentUserId())
+                    val categoryExpenses = expenses.filter { it.categoryId == category.id }
+                    categoryExpenses.forEach { expense ->
+                        database.expenseDao().deleteExpense(expense)
+                    }
+                }
+
+                // Delete the category
+                database.categoryDao().deleteCategory(category)
+
+                runOnUiThread {
+                    val message = if (expenseCount > 0) {
+                        "Category '${category.name}' and $expenseCount expense(s) deleted successfully"
+                    } else {
+                        "Category '${category.name}' deleted successfully"
+                    }
+
+                    Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+
+                    // Refresh the lists
+                    loadCategories()
+                    loadExpenses()
+                    loadGoalProgress()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Error deleting category: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
@@ -489,7 +675,14 @@ class MainActivity : AppCompatActivity() {
             val expenses = database.expenseDao().getExpensesByUser(userId)
             val categories = database.categoryDao().getCategoriesByUser(userId)
 
-            if (expenses.isEmpty() && categories.isEmpty()) {
+            // Apply date range filter if set
+            val filteredExpenses = if (filterStartDate != null && filterEndDate != null) {
+                expenses.filter { it.date >= filterStartDate!! && it.date <= filterEndDate!! }
+            } else {
+                expenses
+            }
+
+            if (filteredExpenses.isEmpty() && categories.isEmpty()) {
                 emptyStateLayout.visibility = View.VISIBLE
                 rvExpenses.visibility = View.GONE
                 tvTotalSpent.text = "$0.00"
@@ -499,7 +692,7 @@ class MainActivity : AppCompatActivity() {
                 rvExpenses.visibility = View.VISIBLE
 
                 // Group expenses by category
-                val expensesByCategory = expenses.groupBy { it.categoryId }
+                val expensesByCategory = filteredExpenses.groupBy { it.categoryId }
                 val listItems = mutableListOf<ExpenseListItem>()
 
                 // Process each category - now showing all categories regardless of expense count
@@ -530,7 +723,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Add expenses without categories (orphaned expenses) at the bottom
-                val orphanedExpenses = expenses.filter { expense ->
+                val orphanedExpenses = filteredExpenses.filter { expense ->
                     categories.none { it.id == expense.categoryId }
                 }
 
@@ -546,11 +739,68 @@ class MainActivity : AppCompatActivity() {
                 groupedExpenseAdapter.submitList(listItems)
 
                 // Update summary
-                val total = expenses.sumOf { it.amount }
+                val total = filteredExpenses.sumOf { it.amount }
                 tvTotalSpent.text = getString(R.string.currency_format, total)
 
-                val count = expenses.size
+                val count = filteredExpenses.size
                 tvExpenseCount.text = if (count == 1) "1 expense" else "$count expenses"
+            }
+        }
+    }
+
+    private fun loadGoalProgress() {
+        lifecycleScope.launch {
+            val userId = userPrefs.getCurrentUserId()
+            if (userId == -1) return@launch
+
+            val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
+            val goal = database.goalDao().getGoalForMonth(userId, currentMonth)
+
+            // Calculate current month spending
+            val calendar = Calendar.getInstance()
+            calendar.set(Calendar.DAY_OF_MONTH, 1)
+            val startDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+            val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+
+            val expenses = database.expenseDao().getExpensesByUser(userId)
+            val monthlyExpenses = expenses.filter { it.date >= startDate && it.date <= endDate }
+            val currentSpent = monthlyExpenses.sumOf { it.amount }
+
+            tvCurrentSpent.text = String.format("$%.2f", currentSpent)
+
+            if (goal != null) {
+                tvMinGoal.text = String.format("$%.2f", goal.minGoal)
+                tvMaxGoal.text = String.format("$%.2f", goal.maxGoal)
+
+                // Calculate progress percentage
+                val progress = if (goal.maxGoal > 0) {
+                    ((currentSpent / goal.maxGoal) * 100).toInt()
+                } else 0
+
+                progressGoal.progress = progress.coerceIn(0, 100)
+
+                // Update status message
+                tvGoalStatus.text = when {
+                    currentSpent > goal.maxGoal -> "⚠️ Over budget by $${String.format("%.2f", currentSpent - goal.maxGoal)}"
+                    currentSpent < goal.minGoal -> "Below minimum goal"
+                    else -> "✓ On track! Keep it up"
+                }
+
+                // Update status color
+                tvGoalStatus.setTextColor(
+                    getColor(when {
+                        currentSpent > goal.maxGoal -> R.color.error_red
+                        currentSpent < goal.minGoal -> R.color.goal_warning
+                        else -> R.color.goal_success
+                    })
+                )
+            } else {
+                tvMinGoal.text = "$0.00"
+                tvMaxGoal.text = "$0.00"
+                progressGoal.progress = 0
+                tvGoalStatus.text = "Set your monthly goals to track progress"
             }
         }
     }

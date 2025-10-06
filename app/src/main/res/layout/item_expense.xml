@@ -16,6 +16,25 @@
         android:orientation="horizontal"
         android:padding="@dimen/item_card_padding">
 
+        <!-- Photo Thumbnail (if available) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_photo_thumbnail"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="12dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <ImageView
+                android:id="@+id/iv_expense_photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Expense photo thumbnail" />
+
+        </com.google.android.material.card.MaterialCardView>
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -48,6 +67,17 @@
                 android:text="2025-10-06"
                 android:textSize="@dimen/text_size_body_medium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <!-- Time range display (if available) -->
+            <TextView
+                android:id="@+id/tv_expense_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="09:00 - 17:00"
+                android:textSize="@dimen/text_size_body_small"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
 
         </LinearLayout>
 
