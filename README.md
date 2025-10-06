@@ -1,7 +1,6 @@
 # 🚗 Auto Saver
 
 [![Android CI](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-ci.yml)
-[![Android Tests](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-tests.yml/badge.svg)](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Prototype for a car themed budgeting Application
@@ -77,3 +76,5 @@ Availability: https://fonts.google.com/icons
 Anthropic. (2025) Claude Sonnet 4.5. Anthropic. Available at:https://www.anthropic.com/claude/sonnet (Accessed: 29/09/2025).
 
 OpenAI. (2025) Chat-GPT 5.0. OpenAI. Available at: https://chatgpt.com/c/68de5ffd-be60-8331-9bc3-2b2177f31b8c (Accessed: 29/09/2025)
+
+The link to our demo video: https://youtu.be/IypmBm6VzJk
