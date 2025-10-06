@@ -3,9 +3,12 @@ package com.example.auto_saver
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -22,12 +25,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fabMenu: FloatingActionButton
     private lateinit var fabAdd: FloatingActionButton
+    private lateinit var tvUserName: TextView
     private lateinit var rvExpenses: RecyclerView
     private lateinit var tvTotalSpent: TextView
     private lateinit var tvExpenseCount: TextView
@@ -71,24 +78,35 @@ class MainActivity : AppCompatActivity() {
     private fun initializeViews() {
         fabMenu = findViewById(R.id.fab_menu)
         fabAdd = findViewById(R.id.fab_add)
+        tvUserName = findViewById(R.id.tv_user_name)
         rvExpenses = findViewById(R.id.rv_expenses)
         tvTotalSpent = findViewById(R.id.tv_total_spent)
         tvExpenseCount = findViewById(R.id.tv_expense_count)
         emptyStateLayout = findViewById(R.id.empty_state_layout)
+
+        // Load user's name in profile card
+        loadUserProfile()
+    }
+
+    private fun loadUserProfile() {
+        val userId = userPrefs.getCurrentUserId()
+        if (userId != -1) {
+            lifecycleScope.launch {
+                val user = database.userDao().getUserById(userId)
+                user?.let {
+                    // Display full name in profile card
+                    tvUserName.text = it.fullName ?: "User"
+                }
+            }
+        } else {
+            tvUserName.text = "User"
+        }
     }
 
     private fun setupMenu() {
         fabMenu.setOnClickListener {
             val popup = PopupMenu(this, fabMenu)
             popup.menuInflater.inflate(R.menu.popup_menu, popup.menu)
-
-            // Update theme toggle text based on current theme
-            val themeItem = popup.menu.findItem(R.id.action_theme_toggle)
-            themeItem?.title = if (userPrefs.isDarkModeEnabled()) {
-                "Switch to Light Mode"
-            } else {
-                "Switch to Dark Mode"
-            }
 
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -203,28 +221,9 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            // Show dialog to choose between adding expense or category
-            showAddDialog()
+            // Show popup menu with add options (matching menu modal design)
+            showAddPopupMenu()
         }
-    }
-
-    private fun showAddDialog() {
-        val options = arrayOf("Add Expense", "Create Category")
-        AlertDialog.Builder(this)
-            .setTitle("What would you like to do?")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        // Add Expense
-                        startActivity(Intent(this, AddExpenseActivity::class.java))
-                    }
-                    1 -> {
-                        // Create Category
-                        startActivity(Intent(this, AddCategoryActivity::class.java))
-                    }
-                }
-            }
-            .show()
     }
 
     private fun setupRecyclerViews() {
@@ -248,6 +247,158 @@ class MainActivity : AppCompatActivity() {
             expandedCategories.add(categoryId)
         }
         loadExpenses() // Refresh the list
+    }
+
+    private fun showAddPopupMenu() {
+        val popup = PopupMenu(this, fabAdd)
+        popup.menuInflater.inflate(R.menu.add_menu, popup.menu)
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_add_expense -> {
+                    // Show Add Expense Dialog
+                    showAddExpenseDialog()
+                    true
+                }
+                R.id.action_create_category -> {
+                    // Show Create Category Dialog
+                    showAddCategoryDialog()
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun showAddCategoryDialog() {
+        val input = EditText(this)
+        input.hint = "Category name"
+        input.setPadding(60, 40, 60, 40)
+
+        AlertDialog.Builder(this)
+            .setTitle("Create Category")
+            .setView(input)
+            .setPositiveButton("Create") { _, _ ->
+                val categoryName = input.text.toString().trim()
+                if (categoryName.isEmpty()) {
+                    Toast.makeText(this, "Please enter a category name", Toast.LENGTH_SHORT).show()
+                } else {
+                    createCategory(categoryName)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun createCategory(categoryName: String) {
+        lifecycleScope.launch {
+            val userId = userPrefs.getCurrentUserId()
+            if (userId == -1) {
+                Toast.makeText(this@MainActivity, "Please log in first", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            // Check if category already exists
+            val existingCategories = database.categoryDao().getCategoriesByUser(userId)
+            if (existingCategories.any { it.name.equals(categoryName, ignoreCase = true) }) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Category '$categoryName' already exists",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+
+            val category = Category(
+                userId = userId,
+                name = categoryName
+            )
+
+            database.categoryDao().insertCategory(category)
+
+            Toast.makeText(
+                this@MainActivity,
+                "Category created successfully",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Refresh the list
+            loadCategories()
+        }
+    }
+
+    private fun showAddExpenseDialog() {
+        lifecycleScope.launch {
+            val userId = userPrefs.getCurrentUserId()
+            val categories = database.categoryDao().getCategoriesByUser(userId)
+
+            if (categories.isEmpty()) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "No categories found. Please create a category first.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+
+            // Create a custom dialog view
+            val dialogView = layoutInflater.inflate(R.layout.dialog_add_expense, null)
+            val etAmount = dialogView.findViewById<EditText>(R.id.et_amount)
+            val etDescription = dialogView.findViewById<EditText>(R.id.et_description)
+            val spinnerCategory = dialogView.findViewById<Spinner>(R.id.spinner_category)
+
+            // Setup category spinner
+            val categoryNames = categories.map { it.name }
+            val adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, categoryNames)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerCategory.adapter = adapter
+
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle("Add Expense")
+                .setView(dialogView)
+                .setPositiveButton("Save") { _, _ ->
+                    val amount = etAmount.text.toString().toDoubleOrNull()
+                    val description = etDescription.text.toString().trim()
+                    val selectedCategoryPos = spinnerCategory.selectedItemPosition
+
+                    if (amount == null || amount <= 0) {
+                        Toast.makeText(this@MainActivity, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
+                    } else if (description.isEmpty()) {
+                        Toast.makeText(this@MainActivity, "Please enter a description", Toast.LENGTH_SHORT).show()
+                    } else {
+                        saveExpense(amount, description, categories[selectedCategoryPos].id)
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun saveExpense(amount: Double, description: String, categoryId: Int) {
+        lifecycleScope.launch {
+            val userId = userPrefs.getCurrentUserId()
+            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+            val expense = Expense(
+                userId = userId,
+                categoryId = categoryId,
+                amount = amount,
+                description = description,
+                date = currentDate
+            )
+
+            database.expenseDao().insertExpense(expense)
+
+            Toast.makeText(
+                this@MainActivity,
+                "Expense saved successfully",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Refresh the list
+            loadExpenses()
+        }
     }
 
     private fun showDeleteCategoryDialog(category: Category) {

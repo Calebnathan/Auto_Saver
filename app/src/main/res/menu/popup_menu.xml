@@ -3,7 +3,7 @@
 
         <item
             android:id="@+id/action_theme_toggle"
-            android:title="Toggle Dark Mode"/>
+            android:title="Theme"/>
         <item
             android:id="@+id/action_settings"
             android:title="Settings"/>
