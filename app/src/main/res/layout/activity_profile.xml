@@ -25,8 +25,8 @@
 
     <Button
         android:id="@+id/btn_back"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="337dp"
+        android:layout_height="46dp"
         android:text="Confirm Changes"
         android:translationY="1.75in"
         app:layout_constraintBottom_toBottomOf="parent"
