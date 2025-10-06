@@ -89,6 +89,7 @@
                 android:id="@+id/fab_menu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:contentDescription="@string/button_menu"
                 app:backgroundTint="@color/goal_danger"
                 app:borderWidth="2dp"
@@ -96,6 +97,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="1.0"
                 app:srcCompat="@drawable/ic_material_menu"
                 app:tint="@color/gray_100" />
 
