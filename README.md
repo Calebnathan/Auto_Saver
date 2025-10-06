@@ -46,3 +46,30 @@ Auto Saver is an Android budgeting application designed to help users track thei
 
 ## 📄 License
 This project is a prototype for educational purposes.
+
+## References 
+
+The following references include the sites and videos used in helping create this prototype.
+
+Title: Step-by-Step: Setting Up and Implementing Room Database in Android
+Author: Shamsuddoha Ranju
+Date: 18/01/2024 
+Code Version:(N/A)
+Availability: https://medium.com/@sdranju/step-by-step-how-to-setting-up-and-implementing-room-database-aeb211c56702
+
+Title: TextInputEditText - Material Design Edit Text | Android Studio Tutorial
+Author: Stevdza-San
+Date:  22/03/2021
+Code Version:(N/A)
+Availability: https://youtu.be/IxhIa3eZxz8?si=POAVCzTzDF1I-pHj
+
+Title: Google Fonts
+Author: Google
+Date:  (N/A)
+Code Version:(N/A)
+Availability: https://fonts.google.com/icons
+
+Anthropic. (2025) Claude Sonnet 4.5. Anthropic. Available at:https://www.anthropic.com/claude/sonnet (Accessed: 29/09/2025).
+
+OpenAI. (2025) Chat-GPT 5.0. OpenAI. Available at: https://chatgpt.com/c/68de5ffd-be60-8331-9bc3-2b2177f31b8c (Accessed: 29/09/2025)
+
