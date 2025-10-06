@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="dark_gray">#121212</color>
+
+    <!-- Red Accent Colors - Primary Theme -->
+    <color name="red_primary">#D32F2F</color>
+    <color name="red_secondary">#F44336</color>
+    <color name="red_light">#FFCDD2</color>
+    <color name="red_dark">#B71C1C</color>
+    <color name="red_on_primary">#FFFFFF</color>
+
+    <!-- Neutral Gray Palette -->
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_200">#EEEEEE</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_800">#424242</color>
+    <color name="gray_900">#212121</color>
+
+    <!-- Surface Colors for Dark Mode -->
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="surface_dark_elevated">#2C2C2C</color>
+
+    <!-- Status Colors -->
+    <color name="success_green">#4CAF50</color>
+    <color name="warning_yellow">#FFC107</color>
+    <color name="error_red">#F44336</color>
 </resources>

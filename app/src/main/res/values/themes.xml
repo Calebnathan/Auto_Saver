@@ -1,8 +1,30 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme - Light Mode -->
     <style name="Base.Theme.Auto_Saver" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Primary Colors - Red Accent -->
+        <item name="colorPrimary">@color/red_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/red_light</item>
+        <item name="colorOnPrimaryContainer">@color/red_dark</item>
+
+        <!-- Secondary Colors -->
+        <item name="colorSecondary">@color/red_secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Background & Surface -->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="colorSurface">@color/gray_50</item>
+        <item name="colorOnSurface">@color/gray_900</item>
+        <item name="colorSurfaceVariant">@color/gray_100</item>
+        <item name="colorOnSurfaceVariant">@color/gray_600</item>
+
+        <!-- Error Colors -->
+        <item name="colorError">@color/error_red</item>
+        <item name="colorOnError">@color/white</item>
+
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.Auto_Saver" parent="Base.Theme.Auto_Saver" />
