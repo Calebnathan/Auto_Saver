@@ -109,4 +109,10 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test:rules:1.6.1")
+
+    // AndroidX Test Core for ApplicationProvider in unit tests
+    testImplementation("androidx.test:core:1.6.1")
+
+    // Robolectric for Android framework in unit tests
+    testImplementation("org.robolectric:robolectric:4.13")
 }

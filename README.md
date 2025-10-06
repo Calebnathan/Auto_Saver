@@ -1,8 +1,8 @@
 # 🚗 Auto Saver
 
 [![Android CI](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-ci.yml)
-[![Release Build](https://github.com/Calebnathan/Auto_Saver/actions/workflows/release.yml/badge.svg)](https://github.com/Calebnathan/Auto_Saver/actions/workflows/release.yml)
-[![License](https://img.shields.io/badge/license-Educational-blue.svg)](LICENSE)
+[![Android Tests](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-tests.yml/badge.svg)](https://github.com/Calebnathan/Auto_Saver/actions/workflows/android-tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Prototype for a car themed budgeting Application
 
@@ -52,7 +52,7 @@ Auto Saver is an Android budgeting application designed to help users track thei
 ## 📄 License
 This project is a prototype for educational purposes.
 
-## References 
+## 📚 References 
 
 The following references include the sites and videos used in helping create this prototype.
 
