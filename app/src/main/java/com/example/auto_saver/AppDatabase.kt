@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [User::class, Category::class, Expense::class, Goal::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 
@@ -28,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "my_room_database"
                 )
-                    // optionally allow main thread (not recommended) or add migrations etc
+                    .fallbackToDestructiveMigration() // Add this for now to handle schema changes
                     .build()
                 INSTANCE = instance
                 instance

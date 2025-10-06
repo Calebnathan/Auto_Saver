@@ -19,5 +19,8 @@ data class User(
     val fullName: String? = null,
 
     @ColumnInfo(name = "contact")
-    val contact: String? = null
+    val contact: String? = null,
+
+    @ColumnInfo(name = "profile_photo_path")
+    val profilePhotoPath: String? = null
 )

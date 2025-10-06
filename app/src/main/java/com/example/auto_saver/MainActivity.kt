@@ -2,11 +2,12 @@ package com.example.auto_saver
 
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.ProgressBar
@@ -17,6 +18,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -28,6 +30,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -39,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fabMenu: FloatingActionButton
     private lateinit var fabAdd: FloatingActionButton
     private lateinit var tvUserName: TextView
+    private lateinit var ivProfileIcon: ImageView
     private lateinit var rvExpenses: RecyclerView
     private lateinit var tvTotalSpent: TextView
     private lateinit var tvExpenseCount: TextView
@@ -100,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         fabMenu = findViewById(R.id.fab_menu)
         fabAdd = findViewById(R.id.fab_add)
         tvUserName = findViewById(R.id.tv_user_name)
+        ivProfileIcon = findViewById(R.id.iv_profile_icon)
         rvExpenses = findViewById(R.id.rv_expenses)
         tvTotalSpent = findViewById(R.id.tv_total_spent)
         tvExpenseCount = findViewById(R.id.tv_expense_count)
@@ -127,10 +132,33 @@ class MainActivity : AppCompatActivity() {
                 user?.let {
                     // Display full name in profile card
                     tvUserName.text = it.fullName ?: "User"
+
+                    // Load and display profile photo
+                    if (it.profilePhotoPath != null) {
+                        val file = File(it.profilePhotoPath)
+                        if (file.exists()) {
+                            val uri: Uri = FileProvider.getUriForFile(
+                                this@MainActivity,
+                                "${packageName}.fileprovider",
+                                file
+                            )
+                            ivProfileIcon.setImageURI(uri)
+                            ivProfileIcon.imageTintList = null // Remove tint to show actual photo
+                            ivProfileIcon.scaleType = ImageView.ScaleType.CENTER_CROP
+                        } else {
+                            ivProfileIcon.setImageResource(R.drawable.ic_profile_icon)
+                            ivProfileIcon.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                        }
+                    } else {
+                        ivProfileIcon.setImageResource(R.drawable.ic_profile_icon)
+                        ivProfileIcon.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                    }
                 }
             }
         } else {
             tvUserName.text = "User"
+            ivProfileIcon.setImageResource(R.drawable.ic_profile_icon)
+            ivProfileIcon.scaleType = ImageView.ScaleType.CENTER_INSIDE
         }
     }
 

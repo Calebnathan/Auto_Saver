@@ -7,6 +7,11 @@
     <item
         android:id="@+id/action_create_category"
         android:title="Create Category"/>
+    <item
+        android:id="@+id/action_remove_categories"
+        android:title="Remove Categories"/>
+    <item
+        android:id="@+id/action_analytics"
+        android:title="Category Analytics"/>
 
 </menu>
-
