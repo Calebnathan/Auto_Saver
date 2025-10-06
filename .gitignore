@@ -89,6 +89,10 @@ lint-results_files/
 # Android Profiling
 *.hprof
 
+# Test reports
+**/test-results/
+**/androidTest-results/
+
 # Example/Template test files (not needed)
 **/ExampleUnitTest.kt
 **/ExampleInstrumentedTest.kt
@@ -104,4 +108,3 @@ Desktop.ini
 # Backup files
 *.bak
 *~
-
