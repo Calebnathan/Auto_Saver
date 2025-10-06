@@ -13,21 +13,12 @@
         android:gravity="center"
         android:padding="32dp">
 
-        <!-- Logo -->
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="16dp"
-            android:src="@drawable/ic_start_screen"
-            android:contentDescription="@string/app_name"/>
-
         <!-- Title -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/create_account"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+            android:text="Create Account"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
@@ -35,17 +26,67 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/sign_up_subtitle"
-            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:text="Join us today!"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginBottom="32dp"
-            android:gravity="center"/>
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Profile Photo Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            app:cardCornerRadius="60dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="?attr/colorPrimaryContainer"
+            android:layout_marginBottom="12dp">
+
+            <ImageView
+                android:id="@+id/iv_profile_photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_profile_icon"
+                android:scaleType="centerCrop"
+                android:contentDescription="Profile Photo"
+                app:tint="?attr/colorPrimary" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Photo Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_take_photo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Take Photo"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:icon="@android:drawable/ic_menu_camera"
+                app:cornerRadius="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_choose_photo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Choose"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:icon="@android:drawable/ic_menu_gallery"
+                app:cornerRadius="8dp" />
+
+        </LinearLayout>
 
         <!-- Full Name Input -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/full_name"
+            android:hint="Full Name"
             app:startIconDrawable="@android:drawable/ic_menu_myplaces"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -64,8 +105,8 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/contact"
-            app:startIconDrawable="@android:drawable/stat_notify_call_mute"
+            android:hint="Contact Number"
+            app:startIconDrawable="@android:drawable/ic_menu_call"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp">
@@ -74,7 +115,7 @@
                 android:id="@+id/editContact"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
+                android:inputType="phone"
                 android:maxLines="1"/>
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -83,7 +124,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/username"
+            android:hint="Username"
             app:startIconDrawable="@android:drawable/ic_menu_myplaces"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -102,7 +143,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/password"
+            android:hint="Password"
             app:startIconDrawable="@android:drawable/ic_lock_lock"
             app:endIconMode="password_toggle"
             app:boxStrokeColor="?attr/colorPrimary"
@@ -122,7 +163,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/confirm_password"
+            android:hint="Confirm Password"
             app:startIconDrawable="@android:drawable/ic_lock_lock"
             app:endIconMode="password_toggle"
             app:boxStrokeColor="?attr/colorPrimary"
@@ -143,7 +184,7 @@
             android:id="@+id/btnSignUp"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:text="@string/sign_up"
+            android:text="Sign Up"
             android:textSize="16sp"
             style="@style/Widget.Material3.Button"
             app:cornerRadius="12dp"
@@ -154,10 +195,11 @@
             android:id="@+id/btnBackToLogin"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:text="@string/back_to_login"
+            android:text="Back to Login"
             android:textSize="16sp"
-            style="@style/Widget.Material3.Button.TextButton"
-            app:cornerRadius="12dp"/>
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="12dp"
+            app:strokeColor="?attr/colorPrimary"/>
 
     </LinearLayout>
 
