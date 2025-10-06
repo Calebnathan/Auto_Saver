@@ -12,10 +12,10 @@
         android:id="@+id/card_summary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/margin_large"
         android:layout_marginTop="32dp"
-        app:cardElevation="4dp"
-        app:cardCornerRadius="12dp"
+        app:cardElevation="@dimen/card_elevation"
+        app:cardCornerRadius="@dimen/card_corner_radius"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -23,7 +23,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:padding="@dimen/padding_large">
 
             <LinearLayout
                 android:id="@+id/summary_content"
@@ -39,16 +39,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/total_spent"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textSize="@dimen/text_size_body_large"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:id="@+id/tv_total_spent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="8dp"
                     android:text="$0.00"
-                    android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
+                    android:textSize="@dimen/text_size_headline_large"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
 
@@ -56,9 +56,9 @@
                     android:id="@+id/tv_expense_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="8dp"
                     android:text="0 expenses"
-                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:textSize="@dimen/text_size_body_medium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
@@ -68,11 +68,12 @@
                 android:id="@+id/fab_add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/margin_medium"
                 android:contentDescription="Add"
                 app:backgroundTint="#F44336"
                 app:tint="@android:color/white"
                 app:srcCompat="@drawable/ic_material_add"
+                app:fabSize="normal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent" />
@@ -86,10 +87,10 @@
         android:id="@+id/tv_recent_expenses"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="@dimen/margin_large"
+        android:layout_marginTop="@dimen/margin_large"
         android:text="@string/recent_expenses"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        android:textSize="@dimen/text_size_title_large"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/card_summary" />
 
@@ -98,7 +99,7 @@
         android:id="@+id/rv_expenses"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/margin_medium"
         android:clipToPadding="false"
         android:paddingBottom="88dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
@@ -125,15 +126,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/no_expenses_yet"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            android:textSize="@dimen/text_size_title_large"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/margin_medium"
             android:text="@string/add_first_expense"
-            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textSize="@dimen/text_size_body_large"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
@@ -143,10 +144,11 @@
         android:id="@+id/fab_menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_large"
         android:contentDescription="@string/button_menu"
         app:srcCompat="@drawable/ic_material_menu"
+        app:fabSize="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 

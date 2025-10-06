@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
@@ -15,18 +16,22 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var userPreferences: UserPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install the splash screen before calling super.onCreate()
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
 
-        db = AppDatabase.getDatabase(this)
-        userDao = db.userDao()
+        // Check if user is already logged in before showing the UI
         userPreferences = UserPreferences(this)
-
-        // Check if user is already logged in
         if (userPreferences.isLoggedIn()) {
             navigateToMain()
             return
         }
+
+        setContentView(R.layout.activity_login)
+
+        db = AppDatabase.getDatabase(this)
+        userDao = db.userDao()
 
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val btnSignUp = findViewById<Button>(R.id.btnSignUp)

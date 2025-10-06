@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -81,8 +82,20 @@ class MainActivity : AppCompatActivity() {
             val popup = PopupMenu(this, fabMenu)
             popup.menuInflater.inflate(R.menu.popup_menu, popup.menu)
 
+            // Update theme toggle text based on current theme
+            val themeItem = popup.menu.findItem(R.id.action_theme_toggle)
+            themeItem?.title = if (userPrefs.isDarkModeEnabled()) {
+                "Switch to Light Mode"
+            } else {
+                "Switch to Dark Mode"
+            }
+
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
+                    R.id.action_theme_toggle -> {
+                        toggleTheme()
+                        true
+                    }
                     R.id.action_settings -> {
                         val intent = Intent(this, SettingsActivity::class.java)
                         startActivity(intent)
@@ -111,6 +124,19 @@ class MainActivity : AppCompatActivity() {
             }
             popup.show()
         }
+    }
+
+    private fun toggleTheme() {
+        val isDarkMode = userPrefs.isDarkModeEnabled()
+        userPrefs.setDarkMode(!isDarkMode)
+
+        // Apply the theme change
+        AppCompatDelegate.setDefaultNightMode(
+            if (!isDarkMode) AppCompatDelegate.MODE_NIGHT_YES
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
+
+        // The activity will automatically recreate with the new theme
     }
 
     private fun showResetDatabaseDialog() {

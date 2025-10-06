@@ -14,21 +14,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Auto_Saver">
 
-        <!-- Splash Screen - LAUNCHER -->
+        <!-- Login Screen - Now LAUNCHER with Splash Theme -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".LoginActivity"
             android:exported="true"
-            android:theme="@style/Theme.Auto_Saver">
+            android:theme="@style/Theme.Auto_Saver.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Login Screen -->
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false" />
 
         <!-- Sign Up Screen -->
         <activity

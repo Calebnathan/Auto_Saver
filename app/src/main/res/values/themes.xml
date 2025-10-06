@@ -28,4 +28,19 @@
     </style>
 
     <style name="Theme.Auto_Saver" parent="Base.Theme.Auto_Saver" />
+
+    <!-- Splash Screen Theme using Android 12+ API -->
+    <style name="Theme.Auto_Saver.Splash" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background color -->
+        <item name="windowSplashScreenBackground">@color/white</item>
+
+        <!-- Set the splash screen icon/logo -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_start_screen</item>
+
+        <!-- Icon size (optional, default is 240dp) -->
+        <item name="windowSplashScreenAnimationDuration">500</item>
+
+        <!-- Post-splash screen theme -->
+        <item name="postSplashScreenTheme">@style/Theme.Auto_Saver</item>
+    </style>
 </resources>

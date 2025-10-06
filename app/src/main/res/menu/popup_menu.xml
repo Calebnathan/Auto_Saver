@@ -2,6 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
         <item
+            android:id="@+id/action_theme_toggle"
+            android:title="Toggle Dark Mode"/>
+        <item
             android:id="@+id/action_settings"
             android:title="Settings"/>
         <item
