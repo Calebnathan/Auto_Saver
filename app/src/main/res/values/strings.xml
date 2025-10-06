@@ -1,8 +1,7 @@
 <resources>
 
-    <string name="app_name">Auto_Saver</string>
+    <string name="app_name">Auto Saver</string>
     <string name="text_title">Home Page</string>
-
     <string name="button_menu">Visit the menu.</string>
     <string name="button_add">Add something.</string>
 

@@ -25,9 +25,8 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var buttonMenu: Button
+    private lateinit var fabMenu: FloatingActionButton
     private lateinit var fabAdd: FloatingActionButton
-    private lateinit var tvGreeting: TextView
     private lateinit var rvExpenses: RecyclerView
     private lateinit var tvTotalSpent: TextView
     private lateinit var tvExpenseCount: TextView
@@ -69,21 +68,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        buttonMenu = findViewById(R.id.button_menu)
+        fabMenu = findViewById(R.id.fab_menu)
         fabAdd = findViewById(R.id.fab_add)
-        tvGreeting = findViewById(R.id.tv_greeting)
         rvExpenses = findViewById(R.id.rv_expenses)
         tvTotalSpent = findViewById(R.id.tv_total_spent)
         tvExpenseCount = findViewById(R.id.tv_expense_count)
         emptyStateLayout = findViewById(R.id.empty_state_layout)
-
-        // Load and display user's name
-        loadUserGreeting()
     }
 
     private fun setupMenu() {
-        buttonMenu.setOnClickListener {
-            val popup = PopupMenu(this, buttonMenu)
+        fabMenu.setOnClickListener {
+            val popup = PopupMenu(this, fabMenu)
             popup.menuInflater.inflate(R.menu.popup_menu, popup.menu)
 
             popup.setOnMenuItemClickListener { item ->
@@ -380,22 +375,6 @@ class MainActivity : AppCompatActivity() {
                 val count = expenses.size
                 tvExpenseCount.text = if (count == 1) "1 expense" else "$count expenses"
             }
-        }
-    }
-
-    private fun loadUserGreeting() {
-        val userId = userPrefs.getCurrentUserId()
-        if (userId != -1) {
-            lifecycleScope.launch {
-                val user = database.userDao().getUserById(userId)
-                user?.let {
-                    // Extract first name from fullName (get first word before space)
-                    val firstName = it.fullName?.split(" ")?.firstOrNull() ?: "User"
-                    tvGreeting.text = "Hello, $firstName"
-                }
-            }
-        } else {
-            tvGreeting.text = "Hello, User"
         }
     }
 }
