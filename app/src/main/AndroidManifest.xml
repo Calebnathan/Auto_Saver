@@ -54,6 +54,18 @@
         <activity
             android:name=".AddUserActivity"
             android:exported="false" />
+
+        <!-- Add Expense Screen -->
+        <activity
+            android:name=".AddExpenseActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- Add Category Screen -->
+        <activity
+            android:name=".AddCategoryActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>

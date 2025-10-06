@@ -50,6 +50,11 @@
     <string name="goals">Goals</string>
     <string name="logout">Logout</string>
 
+    <!-- Goal Progress -->
+    <string name="goal_progress_track">Goal progress tracker</string>
+    <string name="goal_car">Car showing spending progress</string>
+    <string name="goal_progress_format">%d%% to goal</string>
+
     <!-- Expense Details -->
     <string name="description">Description</string>
     <string name="amount">Amount</string>

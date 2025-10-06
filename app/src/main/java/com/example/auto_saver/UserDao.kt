@@ -20,6 +20,9 @@ interface UserDao {
     @Query("SELECT * FROM user_table WHERE login_id = :userId LIMIT 1")
     suspend fun getUserByLoginId(userId: String): User?
 
+    @Query("SELECT * FROM user_table WHERE id = :id LIMIT 1")
+    suspend fun getUserById(id: Int): User?
+
     @Query("SELECT * FROM user_table")
     suspend fun getAllUsers(): List<User>
 }

@@ -32,4 +32,9 @@
     <color name="success_green">#4CAF50</color>
     <color name="warning_yellow">#FFC107</color>
     <color name="error_red">#F44336</color>
+
+    <!-- Goal Progress Colors -->
+    <color name="goal_safe">#4CAF50</color>
+    <color name="goal_warning">#FFC107</color>
+    <color name="goal_danger">#F44336</color>
 </resources>

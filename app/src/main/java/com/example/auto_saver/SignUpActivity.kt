@@ -108,7 +108,10 @@ class SignUpActivity : AppCompatActivity() {
                 password = password
             )
 
-            db.userDao().insert(user)
+            val userId = db.userDao().insert(user).toInt()
+
+            // Create default categories for the new user
+            createDefaultCategories(userId)
 
             runOnUiThread {
                 Toast.makeText(this@SignUpActivity, "Account created successfully! Please log in.", Toast.LENGTH_LONG).show()
@@ -118,5 +121,16 @@ class SignUpActivity : AppCompatActivity() {
             }
         }
     }
-}
 
+    private suspend fun createDefaultCategories(userId: Int) {
+        val defaultCategories = listOf(
+            Category(userId = userId, name = "Bills"),
+            Category(userId = userId, name = "Food"),
+            Category(userId = userId, name = "Pets")
+        )
+
+        defaultCategories.forEach { category ->
+            db.categoryDao().insertCategory(category)
+        }
+    }
+}
