@@ -90,11 +90,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/button_menu"
-                app:srcCompat="@drawable/ic_material_menu"
+                app:backgroundTint="@color/goal_danger"
+                app:borderWidth="2dp"
                 app:fabSize="mini"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:srcCompat="@drawable/ic_material_menu"
+                app:tint="@color/gray_100" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -162,15 +165,14 @@
                 android:id="@+id/fab_add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_medium"
                 android:contentDescription="Add"
-                app:backgroundTint="#F44336"
-                app:tint="@android:color/white"
-                app:srcCompat="@drawable/ic_material_add"
+                app:backgroundTint="@color/error_red"
                 app:fabSize="normal"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:srcCompat="@drawable/ic_material_add"
+                app:tint="?attr/colorOnPrimary" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

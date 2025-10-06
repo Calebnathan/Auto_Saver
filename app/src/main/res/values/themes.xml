@@ -10,10 +10,16 @@
         <!-- Secondary Colors -->
         <item name="colorSecondary">@color/red_secondary</item>
         <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/red_light</item>
+        <item name="colorOnSecondaryContainer">@color/red_dark</item>
+
+        <!-- Tertiary Colors -->
+        <item name="colorTertiary">@color/gray_600</item>
+        <item name="colorOnTertiary">@color/white</item>
 
         <!-- Background & Surface -->
-        <item name="android:windowBackground">@color/white</item>
-        <item name="colorSurface">@color/gray_50</item>
+        <item name="android:windowBackground">@color/gray_50</item>
+        <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/gray_900</item>
         <item name="colorSurfaceVariant">@color/gray_100</item>
         <item name="colorOnSurfaceVariant">@color/gray_600</item>
@@ -22,8 +28,11 @@
         <item name="colorError">@color/error_red</item>
         <item name="colorOnError">@color/white</item>
 
+        <!-- Outline -->
+        <item name="colorOutline">@color/gray_300</item>
+
         <!-- Status Bar -->
-        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:statusBarColor">@color/gray_50</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
@@ -32,7 +41,7 @@
     <!-- Splash Screen Theme using Android 12+ API -->
     <style name="Theme.Auto_Saver.Splash" parent="Theme.SplashScreen">
         <!-- Set the splash screen background color -->
-        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenBackground">@color/gray_50</item>
 
         <!-- Set the splash screen icon/logo -->
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_start_screen</item>

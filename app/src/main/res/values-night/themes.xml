@@ -10,6 +10,12 @@
         <!-- Secondary Colors -->
         <item name="colorSecondary">@color/red_light</item>
         <item name="colorOnSecondary">@color/gray_900</item>
+        <item name="colorSecondaryContainer">@color/red_dark</item>
+        <item name="colorOnSecondaryContainer">@color/red_light</item>
+
+        <!-- Tertiary Colors -->
+        <item name="colorTertiary">@color/gray_400</item>
+        <item name="colorOnTertiary">@color/gray_900</item>
 
         <!-- Background & Surface -->
         <item name="android:windowBackground">@color/dark_gray</item>
@@ -21,6 +27,9 @@
         <!-- Error Colors -->
         <item name="colorError">@color/error_red</item>
         <item name="colorOnError">@color/white</item>
+
+        <!-- Outline -->
+        <item name="colorOutline">@color/gray_700</item>
 
         <!-- Status Bar -->
         <item name="android:statusBarColor">@color/dark_gray</item>
