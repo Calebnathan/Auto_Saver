@@ -6,7 +6,9 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "expenses")
 data class Expense(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val userId: Int,
+    val categoryId: Int,
     val amount: Double,
-    val date: String,
-    val categoryId: Int
+    val description: String,
+    val date: String
 )
