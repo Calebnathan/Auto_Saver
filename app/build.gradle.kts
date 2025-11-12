@@ -49,6 +49,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
@@ -60,6 +62,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+
 
     //Room
     //def(room_version = "2.5.0")
