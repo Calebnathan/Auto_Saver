@@ -218,7 +218,7 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private fun saveExpense() {
         val amountStr = etAmount.text.toString()
-        val description = etDescription.text.toString()
+        val descriptionText = etDescription.text.toString()
         val categoryName = actvCategory.text.toString()
 
         // Validation
@@ -261,7 +261,7 @@ class AddExpenseActivity : AppCompatActivity() {
                 userId = userPrefs.getCurrentUserId(),
                 categoryId = selectedCategory.id,
                 amount = amount,
-                description = description.ifEmpty { null },
+                description = descriptionText.takeIf { it.isNotBlank() },
                 date = selectedDate,
                 startTime = selectedStartTime,
                 endTime = selectedEndTime,

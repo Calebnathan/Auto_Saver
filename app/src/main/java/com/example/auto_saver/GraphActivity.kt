@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.graphics.Color
 
-data class Expense(val amount: Double, val date: String, val categoryId: Int)
+data class ChartExpense(val amount: Double, val date: String, val categoryId: Int)
 
 class GraphActivity : AppCompatActivity() {
 
@@ -81,13 +81,13 @@ class GraphActivity : AppCompatActivity() {
             .collection("expense_table")
             .get()
             .addOnSuccessListener { result ->
-                val expenseList = mutableListOf<Expense>()
+                val expenseList = mutableListOf<ChartExpense>()
                 for (document in result) {
                     val amount = document.getDouble("amount") ?: 0.0
                     val date = document.getString("date") ?: ""
                     val categoryId = document.getLong("category_id")?.toInt() ?: 0
 
-                    expenseList.add(Expense(amount, date, categoryId))
+                    expenseList.add(ChartExpense(amount, date, categoryId))
                 }
 
                 updateBarChart(expenseList)
@@ -135,7 +135,7 @@ class GraphActivity : AppCompatActivity() {
         barChart.invalidate()
     }
 
-    private fun updateBarChart(expenses: List<Expense>) {
+    private fun updateBarChart(expenses: List<ChartExpense>) {
         if (expenses.isEmpty()) {
             Toast.makeText(this, "No data for selected period", Toast.LENGTH_SHORT).show()
             barChart.clear()
