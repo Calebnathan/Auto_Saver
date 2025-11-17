@@ -53,6 +53,7 @@
     <string name="categories">Categories</string>
     <string name="goals">Goals</string>
     <string name="logout">Logout</string>
+    <string name="filter">Filter</string>
 
     <!-- Goal Progress -->
     <string name="goal_progress_track">Goal progress tracker</string>

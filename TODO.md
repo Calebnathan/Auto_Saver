@@ -111,13 +111,13 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 
 ### 3.4 Categories & Expenses Tab (Home > Categories)
 - [x] Create `ui/home/CategoriesFragment.kt` (placeholder)
-- [x] Create `fragment_categories.xml` layout (placeholder):
-  - [ ] RecyclerView for category/expense list (reuse existing adapter)
-  - [ ] FAB for add actions (expense, category)
-  - [ ] Filter button
-  - [ ] Empty state
-- [ ] Migrate existing categories/expenses logic from MainActivity
-- [ ] Create `ui/home/CategoriesViewModel.kt`
+- [x] Create `fragment_categories.xml` layout:
+  - [x] RecyclerView for category/expense list (reuse grouped adapter)
+  - [x] FAB for add actions (expense, category - currently launches AddExpenseActivity)
+  - [x] Filter button (placeholder, no-op)
+  - [x] Empty state
+- [x] Migrate existing categories/expenses logic from MainActivity (now driven by repositories)
+- [x] Create `ui/home/CategoriesViewModel.kt`
 
 ### 3.5 Enhanced GraphActivity
 - [ ] Update existing `GraphActivity.kt`:
