@@ -76,15 +76,15 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 ## 📋 Phase 3: Home Screen (Page 1)
 
 ### 3.1 Home Fragment Structure
-- [ ] Create `ui/home/HomeFragment.kt`:
-  - [ ] Hosts ViewPager2 with TabLayout for sub-pages
-  - [ ] Tab 1: Dashboard
-  - [ ] Tab 2: Categories & Expenses
-- [ ] Create `fragment_home.xml` layout with TabLayout + ViewPager2
+- [x] Create `ui/home/HomeFragment.kt`:
+  - [x] Hosts ViewPager2 with TabLayout for sub-pages
+  - [x] Tab 1: Dashboard
+  - [x] Tab 2: Categories & Expenses
+- [x] Create `fragment_home.xml` layout with TabLayout + ViewPager2
 
 ### 3.2 Dashboard Tab (Home > Dashboard)
-- [ ] Create `ui/home/DashboardFragment.kt`
-- [ ] Create `fragment_dashboard.xml` layout:
+- [x] Create `ui/home/DashboardFragment.kt` (placeholder)
+- [x] Create `fragment_dashboard.xml` layout (placeholder):
   - [ ] Summary Card (total spent, expense count)
   - [ ] **NEW: Spending Graph Card** (compact view)
     - [ ] Mini line chart showing last 7-30 days
@@ -109,8 +109,8 @@ Transform Auto Saver into a modern, 3-page navigation app with:
   - [ ] Comparison with previous period (optional)
 
 ### 3.4 Categories & Expenses Tab (Home > Categories)
-- [ ] Create `ui/home/CategoriesFragment.kt`
-- [ ] Create `fragment_categories.xml` layout:
+- [x] Create `ui/home/CategoriesFragment.kt` (placeholder)
+- [x] Create `fragment_categories.xml` layout (placeholder):
   - [ ] RecyclerView for category/expense list (reuse existing adapter)
   - [ ] FAB for add actions (expense, category)
   - [ ] Filter button
@@ -588,9 +588,9 @@ match /collaborative_goals/{goalId} {
 
 ---
 
-**Last Updated**: 2025-01-17
-**Status**: Phase 1 & 2 Complete ✅ | Code Review & Improvements Complete ✅
-**Next Step**: Begin Phase 3 - Home Screen Implementation
+**Last Updated**: 2025-11-17
+**Status**: Phase 1 & 2 Complete ✅ | Phase 3.1 Home Tabs Structure Complete ✅
+**Next Step**: Implement Phase 3.2 Dashboard Tab (cards, graph, viewmodel)
 **Build Status**: ✅ BUILD SUCCESSFUL in 40s (all 74 tests passed)
 **Recent Improvements**:
 - Cleaned up MainActivity.kt unused imports (Menu, MenuItem)

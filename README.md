@@ -8,6 +8,11 @@ Prototype for a car themed budgeting Application
 ## 📱 Overview
 Auto Saver is an Android budgeting application designed to help users track their expenses and manage their finances effectively. The app features a clean, intuitive interface with category-based expense organization and real-time spending summaries.
 
+The modern UI/UX overhaul introduces a three-page navigation structure:
+- 🏠 **Home** – Personal dashboard for your spending and goals (with Dashboard and Categories tabs)
+- 🏁 **Race** – Competitive budgeting challenges between users (under construction)
+- 🤝 **Social** – Collaborative savings goals with friends and family (under construction)
+
 ## ✨ Features
 - 🔐 **User Authentication** - Secure login and signup system
 - 💰 **Expense Tracking** - Add, view, and organize expenses by category
@@ -25,22 +30,24 @@ Auto Saver is an Android budgeting application designed to help users track thei
 3. **Welcome** - See your personalized greeting and default categories
 
 ### Daily Use
-1. **Track Expenses** 
-   - Tap the red ➕ button in the Total Spent card
-   - Choose "Add Expense"
-   - Enter amount, description, category, and date
-   - Save to see it appear under the category
+1. **Navigate the App**
+   - Use the bottom navigation bar to switch between Home, Race, and Social.
+   - On the Home screen, use the tabs to switch between the **Dashboard** and **Categories** views (early-stage placeholders for upcoming features).
 
-2. **Manage Categories**
-   - Tap the red ➕ button
-   - Choose "Create Category"
-   - Name your category (e.g., Transportation, Entertainment)
-   - Save to start organizing expenses
+2. **Track Expenses** 
+   - From Home, open the Categories view (or legacy flows as they are migrated).
+   - Tap the ➕ button in the Total Spent card or relevant action.
+   - Enter amount, description, category, and date.
+   - Save to see it appear under the category.
 
-3. **View Your Spending**
-   - See total spent at the top of the screen
-   - Tap any category to expand and view expenses
-   - Collapse categories to keep your view organized
+3. **Manage Categories**
+   - Use the add action (➕) in the Home area.
+   - Create categories (e.g., Transportation, Entertainment).
+   - Save to start organizing expenses.
+
+4. **View Your Spending**
+   - See total spent and summaries on Home (Dashboard tab work in progress).
+   - Browse the Categories tab to inspect category-level expenses.
 
 ### Menu Options
 - ⚙️ **Settings** - Configure app preferences
