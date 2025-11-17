@@ -26,6 +26,22 @@ service cloud.firestore {
              && request.resource.data[field] >= min;
     }
     
+    // Public user profiles for friend lookups
+    // Only contains email, displayName, and uid - safe to query
+    match /public_users/{userId} {
+      // Anyone authenticated can read to search for friends
+      allow read: if isAuthenticated();
+      
+      // Only the user can create/update their own public profile
+      allow create, update: if isOwner(userId)
+                            && hasRequiredFields(['email', 'displayName'])
+                            && isValidString('email', 3, 100)
+                            && isValidString('displayName', 1, 200)
+                            && request.resource.data.keys().hasOnly(['email', 'emailLowercase', 'displayName', 'photoUrl', 'createdAt', 'updatedAt']);
+      
+      allow delete: if isOwner(userId);
+    }
+    
     // User profile document
     match /users/{userId} {
       allow read: if isOwner(userId);
@@ -34,12 +50,14 @@ service cloud.firestore {
                     && hasRequiredFields(['fullName', 'contact'])
                     && isValidString('fullName', 1, 200)
                     && isValidString('contact', 7, 20)
-                    && request.resource.data.keys().hasOnly(['fullName', 'contact', 'profilePhotoPath', 'createdAt', 'updatedAt']);
+                    && (!('contactLowercase' in request.resource.data) || request.resource.data.contactLowercase == request.resource.data.contact.lower())
+                    && request.resource.data.keys().hasOnly(['fullName', 'contact', 'contactLowercase', 'profilePhotoPath', 'createdAt', 'updatedAt']);
       
       allow update: if isOwner(userId)
                     && hasRequiredFields(['fullName', 'contact'])
                     && isValidString('fullName', 1, 200)
                     && isValidString('contact', 7, 20)
+                    && (!('contactLowercase' in request.resource.data) || request.resource.data.contactLowercase == request.resource.data.contact.lower())
                     && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
       
       // Categories subcollection
@@ -135,6 +153,59 @@ service cloud.firestore {
                           && hasAcceptedRequest());
 
         allow update, delete: if isOwner(userId);
+      }
+    }
+
+    // Collaborative Goals collection (Social feature)
+    match /collaborative_goals/{goalId} {
+      function isGoalParticipant() {
+        return isAuthenticated() && request.auth.uid in resource.data.participants;
+      }
+
+      function isGoalCreator() {
+        return isAuthenticated() && request.auth.uid == resource.data.createdBy;
+      }
+
+      // Anyone authenticated can read goals they're part of
+      allow read: if isGoalParticipant();
+
+      // Only authenticated users can create goals
+      allow create: if isAuthenticated()
+                    && request.auth.uid == request.resource.data.createdBy
+                    && request.resource.data.participants.hasOnly([request.auth.uid])
+                    && request.resource.data.status == 'ACTIVE'
+                    && hasRequiredFields(['name', 'createdBy', 'totalBudget', 'currentSaved', 'participants', 'categories', 'status'])
+                    && isValidString('name', 1, 100)
+                    && isValidNumber('totalBudget', 0.01)
+                    && request.resource.data.currentSaved == 0
+                    && request.resource.data.categories is list;
+
+      // Only participants can update goals
+      allow update: if isGoalParticipant();
+
+      // Only creator can delete
+      allow delete: if isGoalCreator();
+
+      // Contributions subcollection
+      match /contributions/{contributionId} {
+        function isGoalMember() {
+          return isAuthenticated() 
+                 && request.auth.uid in get(/databases/$(database)/documents/collaborative_goals/$(goalId)).data.participants;
+        }
+
+        // All goal members can read contributions
+        allow read: if isGoalMember();
+
+        // Only the contributor can create their own contributions
+        allow create: if isAuthenticated() 
+                      && request.auth.uid == request.resource.data.uid
+                      && isGoalMember()
+                      && hasRequiredFields(['goalId', 'categoryId', 'uid', 'amount', 'date'])
+                      && request.resource.data.goalId == goalId
+                      && isValidNumber('amount', 0.01)
+                      && isValidString('date', 10, 10);
+
+        allow update, delete: if false; // Contributions are immutable
       }
     }
 

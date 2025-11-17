@@ -2,11 +2,15 @@ package com.example.auto_saver.data.firestore
 
 import com.example.auto_saver.data.model.CategoryRecord
 import com.example.auto_saver.data.model.ChallengeStatus
+import com.example.auto_saver.data.model.CollaborativeGoal
 import com.example.auto_saver.data.model.ExpenseRecord
 import com.example.auto_saver.data.model.FriendProfile
 import com.example.auto_saver.data.model.FriendRequest
 import com.example.auto_saver.data.model.FriendRequestStatus
+import com.example.auto_saver.data.model.GoalCategory
+import com.example.auto_saver.data.model.GoalContribution
 import com.example.auto_saver.data.model.GoalRecord
+import com.example.auto_saver.data.model.GoalStatus
 import com.example.auto_saver.data.model.RaceChallenge
 import com.example.auto_saver.data.model.RaceParticipant
 import com.example.auto_saver.data.model.UserProfile
@@ -227,6 +231,110 @@ fun RaceParticipant.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
         "updatedAt" to FieldValue.serverTimestamp()
     ).apply {
         if (isNew) put("joinedAt", FieldValue.serverTimestamp())
+    }
+
+fun DocumentSnapshot.toCollaborativeGoal(): CollaborativeGoal? {
+    if (!exists()) return null
+    val name = getString("name") ?: return null
+    val createdBy = getString("createdBy") ?: return null
+    val totalBudget = getNumber("totalBudget")?.toDouble() ?: return null
+    val currentSaved = getNumber("currentSaved")?.toDouble() ?: 0.0
+    val participants = get("participants") as? List<*>
+    val participantsList = participants?.filterIsInstance<String>() ?: emptyList()
+    val categoriesData = get("categories") as? List<*>
+    val categoriesList = categoriesData?.mapNotNull { it.toGoalCategory() } ?: emptyList()
+    val statusValue = getString("status") ?: GoalStatus.ACTIVE.name
+    
+    return CollaborativeGoal(
+        id = id,
+        name = name,
+        description = getString("description") ?: "",
+        createdBy = createdBy,
+        participants = participantsList,
+        totalBudget = totalBudget,
+        currentSaved = currentSaved,
+        categories = categoriesList,
+        deadline = getString("deadline"),
+        createdAt = getTimestamp("createdAt").toEpochMilli(),
+        updatedAt = getTimestamp("updatedAt").toEpochMilli(),
+        status = runCatching { GoalStatus.valueOf(statusValue) }.getOrDefault(GoalStatus.ACTIVE)
+    )
+}
+
+fun Any?.toGoalCategory(): GoalCategory? {
+    if (this !is Map<*, *>) return null
+    val id = get("id") as? String ?: return null
+    val name = get("name") as? String ?: return null
+    val budget = (get("budget") as? Number)?.toDouble() ?: return null
+    val saved = (get("saved") as? Number)?.toDouble() ?: 0.0
+    val color = get("color") as? String ?: "#4CAF50"
+    
+    return GoalCategory(
+        id = id,
+        name = name,
+        budget = budget,
+        saved = saved,
+        color = color
+    )
+}
+
+fun DocumentSnapshot.toGoalContribution(): GoalContribution? {
+    if (!exists()) return null
+    val goalId = getString("goalId") ?: return null
+    val categoryId = getString("categoryId") ?: return null
+    val uid = getString("uid") ?: return null
+    val amount = getNumber("amount")?.toDouble() ?: return null
+    val date = getString("date") ?: return null
+    
+    return GoalContribution(
+        id = id,
+        goalId = goalId,
+        categoryId = categoryId,
+        uid = uid,
+        amount = amount,
+        date = date,
+        note = getString("note") ?: "",
+        createdAt = getTimestamp("createdAt").toEpochMilli()
+    )
+}
+
+fun CollaborativeGoal.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
+    hashMapOf<String, Any?>(
+        "name" to name,
+        "description" to description,
+        "createdBy" to createdBy,
+        "participants" to participants,
+        "totalBudget" to totalBudget,
+        "currentSaved" to currentSaved,
+        "categories" to categories.map { it.toFirestorePayload(isNew = false) },
+        "deadline" to deadline,
+        "status" to status.name,
+        "updatedAt" to FieldValue.serverTimestamp()
+    ).apply {
+        if (isNew) put("createdAt", FieldValue.serverTimestamp())
+    }
+
+fun GoalCategory.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
+    hashMapOf<String, Any?>(
+        "id" to id,
+        "name" to name,
+        "budget" to budget,
+        "saved" to saved,
+        "color" to color
+    ).apply {
+        if (isNew) put("createdAt", FieldValue.serverTimestamp())
+    }
+
+fun GoalContribution.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
+    hashMapOf<String, Any?>(
+        "goalId" to goalId,
+        "categoryId" to categoryId,
+        "uid" to uid,
+        "amount" to amount,
+        "date" to date,
+        "note" to note
+    ).apply {
+        if (isNew) put("createdAt", FieldValue.serverTimestamp())
     }
 
 private fun DocumentSnapshot.getNumber(key: String): Number? = when (val value = get(key)) {

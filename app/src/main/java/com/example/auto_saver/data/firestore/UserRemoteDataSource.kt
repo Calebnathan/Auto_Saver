@@ -30,11 +30,36 @@ class FirestoreUserRemoteDataSource(
         isNew: Boolean
     ): FirestoreResult<UserProfile> = withContext(dispatcher) {
         safeFirestoreCall {
-            firestore.collection("users")
-                .document(profile.uid)
-                .set(profile.toFirestorePayload(isNew), SetOptions.merge())
-                .await()
+            // Write to both users and public_users collections
+            val userPayload = profile.toFirestorePayload(isNew)
+            val publicUserPayload = profile.toPublicUserPayload(isNew)
+            
+            // Use batch write to ensure consistency
+            firestore.runBatch { batch ->
+                batch.set(
+                    firestore.collection("users").document(profile.uid),
+                    userPayload,
+                    SetOptions.merge()
+                )
+                batch.set(
+                    firestore.collection("public_users").document(profile.uid),
+                    publicUserPayload,
+                    SetOptions.merge()
+                )
+            }.await()
+            
             profile
         }
     }
+    
+    private fun UserProfile.toPublicUserPayload(isNew: Boolean): Map<String, Any?> =
+        hashMapOf<String, Any?>(
+            "email" to contact,
+            "emailLowercase" to contact.lowercase(),
+            "displayName" to fullName,
+            "photoUrl" to profilePhotoPath,
+            "updatedAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+        ).apply {
+            if (isNew) put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp())
+        }
 }

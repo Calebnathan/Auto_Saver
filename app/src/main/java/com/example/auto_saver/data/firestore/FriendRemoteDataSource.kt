@@ -76,15 +76,16 @@ class FirestoreFriendRemoteDataSource(
             val sanitizedTarget = targetEmail.trim().lowercase()
             require(currentEmail.trim().lowercase() != sanitizedTarget) { "You cannot add yourself." }
 
-            val targetSnapshot = firestore.collection("users")
-                .whereEqualTo("contactLowercase", sanitizedTarget)
+            // Query public_users collection instead of private users collection
+            val targetSnapshot = firestore.collection("public_users")
+                .whereEqualTo("emailLowercase", sanitizedTarget)
                 .limit(1)
                 .get()
                 .await()
                 .documents
                 .firstOrNull()
-                ?: firestore.collection("users")
-                    .whereEqualTo("contact", targetEmail)
+                ?: firestore.collection("public_users")
+                    .whereEqualTo("email", targetEmail)
                     .limit(1)
                     .get()
                     .await()
