@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1037830686285",
-    "project_id": "autosaverdb",
-    "storage_bucket": "autosaverdb.firebasestorage.app"
+    "project_number": "1086399870634",
+    "project_id": "auto-saver-d4b86",
+    "storage_bucket": "auto-saver-d4b86.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1037830686285:android:ebd47d10114c7618b6be04",
+        "mobilesdk_app_id": "1:1086399870634:android:555559947cfc35470ec2d3",
         "android_client_info": {
           "package_name": "com.example.auto_saver"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAipv6f2ffUuCo4bBbOVq6s4zXd5-4uWBs"
+          "current_key": "AIzaSyBfdnnSttGeW2EI3C_Ckfe1pbphcbPcQ5w"
         }
       ],
       "services": {
