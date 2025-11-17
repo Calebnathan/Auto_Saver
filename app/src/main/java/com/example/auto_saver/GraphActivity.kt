@@ -1,7 +1,9 @@
 package com.example.auto_saver
 
 import android.app.DatePickerDialog
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.LimitLine
@@ -9,19 +11,18 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.FirebaseFirestore
-import android.widget.Button
-import android.widget.Toast
 import java.text.SimpleDateFormat
 import java.util.*
-import android.graphics.Color
 
 data class ChartExpense(val amount: Double, val date: String, val categoryId: Int)
 
 class GraphActivity : AppCompatActivity() {
 
-    private lateinit var startDateButton: Button
-    private lateinit var endDateButton: Button
+    private lateinit var startDateButton: MaterialButton
+    private lateinit var endDateButton: MaterialButton
     private lateinit var barChart: BarChart
     private val db = FirebaseFirestore.getInstance()
 
@@ -32,6 +33,9 @@ class GraphActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_graph)
+
+        val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
+        toolbar.setNavigationOnClickListener { finish() }
 
         startDateButton = findViewById(R.id.startDateButton)
         endDateButton = findViewById(R.id.endDateButton)

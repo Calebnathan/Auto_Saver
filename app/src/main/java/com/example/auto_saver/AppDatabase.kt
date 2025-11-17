@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [User::class, Category::class, Expense::class, Goal::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 
