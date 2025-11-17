@@ -5,9 +5,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.auto_saver.data.model.GoalRecord
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -21,16 +23,17 @@ class GoalsActivity : AppCompatActivity() {
     private lateinit var tvCurrentSpending: TextView
     private lateinit var btnSaveGoal: MaterialButton
 
-    private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
+    private val goalRepository by lazy { MyApplication.goalRepository }
+    private val expenseRepository by lazy { MyApplication.expenseRepository }
+    
     private var currentMonth: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_goals)
 
-        database = AppDatabase.getDatabase(this)
-        userPrefs = UserPreferences(this)
+        userPrefs = MyApplication.userPreferences
 
         initializeViews()
         setupToolbar()
@@ -66,34 +69,50 @@ class GoalsActivity : AppCompatActivity() {
 
     private fun loadExistingGoal() {
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) return@launch
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
+                Toast.makeText(this@GoalsActivity, "Please log in first", Toast.LENGTH_SHORT).show()
+                finish()
+                return@launch
+            }
 
-            val goal = database.goalDao().getGoalForMonth(userId, currentMonth)
-            goal?.let {
-                etMinGoal.setText(it.minGoal.toString())
-                etMaxGoal.setText(it.maxGoal.toString())
+            try {
+                val goal = goalRepository.getGoalForMonth(uid, currentMonth)
+                goal?.let {
+                    etMinGoal.setText(it.minGoal.toString())
+                    etMaxGoal.setText(it.maxGoal.toString())
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@GoalsActivity,
+                    "Error loading goal: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
     private fun loadCurrentSpending() {
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) return@launch
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
+                return@launch
+            }
 
-            val calendar = Calendar.getInstance()
-            val startDate = SimpleDateFormat("yyyy-MM-01", Locale.getDefault()).format(calendar.time)
+            try {
+                val calendar = Calendar.getInstance()
+                val startDate = SimpleDateFormat("yyyy-MM-01", Locale.getDefault()).format(calendar.time)
 
-            // Get last day of month
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-            val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+                val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
 
-            val expenses = database.expenseDao().getExpensesByUser(userId)
-            val monthlyExpenses = expenses.filter { it.date >= startDate && it.date <= endDate }
-            val total = monthlyExpenses.sumOf { it.amount }
-
-            tvCurrentSpending.text = String.format(Locale.getDefault(), "$%.2f", total)
+                val total = expenseRepository.getTotalSpent(uid, startDate, endDate).first()
+                tvCurrentSpending.text = String.format(Locale.getDefault(), "$%.2f", total)
+            } catch (e: Exception) {
+                tvCurrentSpending.text = "$0.00"
+            }
         }
     }
 
@@ -131,20 +150,35 @@ class GoalsActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) return@launch
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
+                Toast.makeText(this@GoalsActivity, "Please log in first", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
 
-            val goal = Goal(
-                userId = userId,
+            val goal = GoalRecord(
+                id = currentMonth,
+                uid = uid,
                 month = currentMonth,
                 minGoal = minGoal,
-                maxGoal = maxGoal
+                maxGoal = maxGoal,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
             )
 
-            database.goalDao().insertGoal(goal)
-
-            Toast.makeText(this@GoalsActivity, "Goal saved successfully!", Toast.LENGTH_SHORT).show()
-            finish()
+            val result = goalRepository.upsertGoal(uid, goal)
+            
+            result.onSuccess {
+                Toast.makeText(this@GoalsActivity, "Goal saved successfully!", Toast.LENGTH_SHORT).show()
+                finish()
+            }.onFailure { error ->
+                Toast.makeText(
+                    this@GoalsActivity,
+                    "Failed to save goal: ${error.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 }

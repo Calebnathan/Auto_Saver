@@ -111,4 +111,8 @@ class FirestoreFirstGoalRepository(
     private suspend fun getCachedGoals(uid: String): List<GoalRecord> {
         return emptyList()
     }
+    
+    fun clearCache() {
+        // Goals are cleared via Room when needed
+    }
 }

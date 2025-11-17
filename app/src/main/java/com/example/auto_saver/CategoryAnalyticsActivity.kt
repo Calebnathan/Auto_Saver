@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.auto_saver.adapters.CategoryAnalyticsAdapter
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,8 +28,9 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
     private lateinit var rvCategoryAnalytics: RecyclerView
     private lateinit var emptyState: LinearLayout
 
-    private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
+    private val expenseRepository by lazy { MyApplication.expenseRepository }
+    private val categoryRepository by lazy { MyApplication.categoryRepository }
 
     private var startDate: String = ""
     private var endDate: String = ""
@@ -36,8 +39,7 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_category_analytics)
 
-        database = AppDatabase.getDatabase(this)
-        userPrefs = UserPreferences(this)
+        userPrefs = MyApplication.userPreferences
 
         initializeViews()
         setupToolbar()
@@ -147,7 +149,6 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
             calendar.set(year, month, day)
             startDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
 
-            // Show end date picker
             DatePickerDialog(this, { _, endYear, endMonth, endDay ->
                 calendar.set(endYear, endMonth, endDay)
                 endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
@@ -166,52 +167,48 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
 
     private fun loadAnalytics() {
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) return@launch
-
-            // Get all expenses in date range
-            val expenses = database.expenseDao().getExpensesByUser(userId)
-                .filter { it.date >= startDate && it.date <= endDate }
-
-            if (expenses.isEmpty()) {
-                showEmptyState()
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
+                Toast.makeText(this@CategoryAnalyticsActivity, "Please log in first", Toast.LENGTH_SHORT).show()
+                finish()
                 return@launch
             }
 
-            // Calculate total
-            val total = expenses.sumOf { it.amount }
-            tvTotalAmount.text = String.format(Locale.getDefault(), "$%.2f", total)
+            try {
+                // Get category summaries from repository
+                val summaries = expenseRepository.getCategorySummaries(uid, startDate, endDate).first()
+                
+                if (summaries.isEmpty()) {
+                    showEmptyState()
+                    return@launch
+                }
 
-            // Group by category and calculate percentages
-            val categoryMap = mutableMapOf<Int, MutableList<Expense>>()
-            expenses.forEach { expense ->
-                categoryMap.getOrPut(expense.categoryId) { mutableListOf() }.add(expense)
-            }
+                // Calculate total
+                val total = expenseRepository.getTotalSpent(uid, startDate, endDate).first()
+                tvTotalAmount.text = String.format(Locale.getDefault(), "$%.2f", total)
 
-            val categorySpendingList = mutableListOf<CategorySpending>()
-
-            for ((categoryId, expenseList) in categoryMap) {
-                val category = database.categoryDao().getCategoryById(categoryId)
-                val categoryTotal = expenseList.sumOf { it.amount }
-                val percentage = if (total > 0) ((categoryTotal / total) * 100).toFloat() else 0f
-
-                categorySpendingList.add(
+                // Convert to CategorySpending for adapter
+                val categorySpendingList = summaries.map { summary ->
                     CategorySpending(
-                        categoryId = categoryId,
-                        categoryName = category?.name ?: "Unknown",
-                        totalAmount = categoryTotal,
-                        percentage = percentage,
-                        expenseCount = expenseList.size
+                        categoryId = 0,
+                        categoryName = summary.categoryName,
+                        totalAmount = summary.total,
+                        percentage = summary.percentage,
+                        expenseCount = summary.expenseCount
                     )
-                )
+                }
+
+                rvCategoryAnalytics.adapter = CategoryAnalyticsAdapter(categorySpendingList)
+                hideEmptyState()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@CategoryAnalyticsActivity,
+                    "Error loading analytics: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                showEmptyState()
             }
-
-            // Sort by amount descending
-            categorySpendingList.sortByDescending { it.totalAmount }
-
-            // Update RecyclerView
-            rvCategoryAnalytics.adapter = CategoryAnalyticsAdapter(categorySpendingList)
-            hideEmptyState()
         }
     }
 

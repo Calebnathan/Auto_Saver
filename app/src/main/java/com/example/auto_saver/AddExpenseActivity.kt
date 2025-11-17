@@ -15,11 +15,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.auto_saver.data.model.ExpenseRecord
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -41,10 +43,11 @@ class AddExpenseActivity : AppCompatActivity() {
     private lateinit var ivPhotoPreview: ImageView
     private lateinit var fabRemovePhoto: FloatingActionButton
 
-    private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
+    private val categoryRepository by lazy { MyApplication.categoryRepository }
+    private val expenseRepository by lazy { MyApplication.expenseRepository }
 
-    private val categories = mutableListOf<Category>()
+    private val categoryMap = mutableMapOf<String, String>()
     private var selectedDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     private var selectedStartTime: String? = null
     private var selectedEndTime: String? = null
@@ -70,8 +73,7 @@ class AddExpenseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
 
-        database = AppDatabase.getDatabase(this)
-        userPrefs = UserPreferences(this)
+        userPrefs = MyApplication.userPreferences
 
         initializeViews()
         setupToolbar()
@@ -97,7 +99,6 @@ class AddExpenseActivity : AppCompatActivity() {
         ivPhotoPreview = findViewById(R.id.iv_photo_preview)
         fabRemovePhoto = findViewById(R.id.fab_remove_photo)
 
-        // Set today's date
         etDate.setText(selectedDate)
     }
 
@@ -111,27 +112,47 @@ class AddExpenseActivity : AppCompatActivity() {
 
     private fun loadCategories() {
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) {
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
                 Toast.makeText(this@AddExpenseActivity, "Please log in first", Toast.LENGTH_SHORT).show()
                 finish()
                 return@launch
             }
 
-            categories.clear()
-            categories.addAll(database.categoryDao().getCategoriesByUser(userId))
+            try {
+                val categories = categoryRepository.observeCategories(uid).first()
 
-            if (categories.isEmpty()) {
-                Toast.makeText(this@AddExpenseActivity, "No categories found. Please add categories first.", Toast.LENGTH_LONG).show()
+                if (categories.isEmpty()) {
+                    Toast.makeText(
+                        this@AddExpenseActivity,
+                        "No categories found. Please add categories first.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                    return@launch
+                }
+
+                categoryMap.clear()
+                categories.forEach { category ->
+                    categoryMap[category.name] = category.id
+                }
+
+                val categoryNames = categories.map { it.name }
+                val adapter = ArrayAdapter(
+                    this@AddExpenseActivity,
+                    android.R.layout.simple_dropdown_item_1line,
+                    categoryNames
+                )
+                actvCategory.setAdapter(adapter)
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@AddExpenseActivity,
+                    "Error loading categories: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+                finish()
             }
-
-            val categoryNames = categories.map { it.name }
-            val adapter = ArrayAdapter(
-                this@AddExpenseActivity,
-                android.R.layout.simple_dropdown_item_1line,
-                categoryNames
-            )
-            actvCategory.setAdapter(adapter)
         }
     }
 
@@ -238,45 +259,52 @@ class AddExpenseActivity : AppCompatActivity() {
             return
         }
 
-        val selectedCategory = categories.find { it.name == categoryName }
-        if (selectedCategory == null) {
+        val categoryId = categoryMap[categoryName]
+        if (categoryId == null) {
             Toast.makeText(this, "Invalid category selected", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Save expense with all fields
+        // Save expense using repository
         lifecycleScope.launch {
-            // Copy photo to permanent storage if exists
-            val photoPath = photoUri?.let { uri ->
-                val photoFile = File(filesDir, "expense_photo_${System.currentTimeMillis()}.jpg")
-                contentResolver.openInputStream(uri)?.use { input ->
-                    photoFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                photoFile.absolutePath
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
+                Toast.makeText(this@AddExpenseActivity, "Please log in first", Toast.LENGTH_SHORT).show()
+                return@launch
             }
 
-            val expense = Expense(
-                userId = userPrefs.getCurrentUserId(),
-                categoryId = selectedCategory.id,
+            val expense = ExpenseRecord(
+                id = "",
+                uid = uid,
+                categoryId = categoryId,
+                date = selectedDate,
                 amount = amount,
                 description = descriptionText.takeIf { it.isNotBlank() },
-                date = selectedDate,
                 startTime = selectedStartTime,
                 endTime = selectedEndTime,
-                photoPath = photoPath
+                photoPath = null,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
             )
 
-            database.expenseDao().insertExpense(expense)
+            // Create expense with optional photo
+            val result = expenseRepository.createExpense(uid, expense, photoUri)
 
-            Toast.makeText(
-                this@AddExpenseActivity,
-                R.string.expense_saved,
-                Toast.LENGTH_SHORT
-            ).show()
-
-            finish()
+            result.onSuccess {
+                Toast.makeText(
+                    this@AddExpenseActivity,
+                    R.string.expense_saved,
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+            }.onFailure { error ->
+                Toast.makeText(
+                    this@AddExpenseActivity,
+                    "Failed to save expense: ${error.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 }
