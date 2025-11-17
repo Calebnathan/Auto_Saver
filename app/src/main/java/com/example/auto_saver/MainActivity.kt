@@ -26,6 +26,11 @@ import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.auto_saver.adapters.GroupedExpenseAdapter
+import com.example.auto_saver.data.firestore.CategoryRemoteDataSource
+import com.example.auto_saver.data.firestore.FirestoreCategoryRemoteDataSource
+import com.example.auto_saver.data.model.CategoryRecord
+import com.example.auto_saver.data.repository.FirestoreFirstCategoryRepository
+import com.example.auto_saver.data.repository.UnifiedCategoryRepository
 import com.example.auto_saver.models.ExpenseListItem
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -69,10 +74,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
+    private lateinit var categoryRepository: UnifiedCategoryRepository
     private lateinit var groupedExpenseAdapter: GroupedExpenseAdapter
     private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
-    private val categoryCache = mutableMapOf<Int, String>()
+    private val categoryCache = mutableMapOf<String, CategoryRecord>()
     private val expandedCategories = mutableSetOf<Int>()
 
     // Date filter state
@@ -98,6 +104,13 @@ class MainActivity : AppCompatActivity() {
 
         database = AppDatabase.getDatabase(this)
         userPrefs = UserPreferences(this)
+        
+        val remoteDataSource: CategoryRemoteDataSource = FirestoreCategoryRemoteDataSource()
+        categoryRepository = FirestoreFirstCategoryRepository(
+            remoteDataSource = remoteDataSource,
+            categoryDao = database.categoryDao(),
+            userPreferences = userPrefs
+        )
 
         initializeViews()
         setupMenu()
@@ -492,38 +505,30 @@ class MainActivity : AppCompatActivity() {
 
     private fun createCategory(categoryName: String) {
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) {
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
                 Toast.makeText(this@MainActivity, "Please log in first", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
-            // Check if category already exists
-            val existingCategories = database.categoryDao().getCategoriesByUser(userId)
-            if (existingCategories.any { it.name.equals(categoryName, ignoreCase = true) }) {
+            val result = categoryRepository.createCategory(uid, categoryName)
+
+            result.onSuccess {
                 Toast.makeText(
                     this@MainActivity,
-                    "Category '$categoryName' already exists",
+                    "Category created successfully",
                     Toast.LENGTH_SHORT
                 ).show()
-                return@launch
+                loadCategories()
+            }.onFailure { error ->
+                val message = when {
+                    error.message?.contains("already exists", ignoreCase = true) == true ->
+                        "Category '$categoryName' already exists"
+                    else -> "Failed to create category: ${error.message}"
+                }
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
             }
-
-            val category = Category(
-                userId = userId,
-                name = categoryName
-            )
-
-            database.categoryDao().insertCategory(category)
-
-            Toast.makeText(
-                this@MainActivity,
-                "Category created successfully",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            // Refresh the list
-            loadCategories()
         }
     }
 
@@ -717,19 +722,8 @@ class MainActivity : AppCompatActivity() {
 
             val categories = database.categoryDao().getCategoriesByUser(userId)
 
-            // If user has no categories, create default ones
             if (categories.isEmpty()) {
                 createDefaultCategories(userId)
-                val newCategories = database.categoryDao().getCategoriesByUser(userId)
-                categoryCache.clear()
-                newCategories.forEach { category ->
-                    categoryCache[category.id] = category.name
-                }
-            } else {
-                categoryCache.clear()
-                categories.forEach { category ->
-                    categoryCache[category.id] = category.name
-                }
             }
 
             loadExpenses()

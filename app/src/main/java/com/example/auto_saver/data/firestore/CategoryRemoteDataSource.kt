@@ -17,6 +17,7 @@ interface CategoryRemoteDataSource {
     fun observeCategories(uid: String): Flow<List<CategoryRecord>>
     suspend fun upsertCategory(uid: String, category: CategoryRecord): FirestoreResult<String>
     suspend fun deleteCategory(uid: String, categoryId: String): FirestoreResult<Unit>
+    suspend fun getCategoryByName(uid: String, name: String): FirestoreResult<CategoryRecord?>
 }
 
 class FirestoreCategoryRemoteDataSource(
@@ -72,6 +73,23 @@ class FirestoreCategoryRemoteDataSource(
                 .delete()
                 .await()
             Unit
+        }
+    }
+
+    override suspend fun getCategoryByName(
+        uid: String,
+        name: String
+    ): FirestoreResult<CategoryRecord?> = withContext(dispatcher) {
+        safeFirestoreCall {
+            val snapshot = firestore.collection("users")
+                .document(uid)
+                .collection("categories")
+                .get()
+                .await()
+
+            snapshot.documents
+                .mapNotNull { it.toCategoryRecord(uid) }
+                .find { it.name.equals(name, ignoreCase = true) }
         }
     }
 }

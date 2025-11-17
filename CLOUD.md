@@ -21,7 +21,7 @@ Map the existing Room entities (`User`, `Category`, `Expense`, `Goal`) to Firest
   - Fields:
     - `fullName: string`
     - `contact: string`
-    - `profilePhotoUrl: string | null`
+    - `profilePhotoPath: string | null` (local file path, not uploaded to cloud)
     - `createdAt: Timestamp`
     - `updatedAt: Timestamp`
 
@@ -51,7 +51,7 @@ Map the existing Room entities (`User`, `Category`, `Expense`, `Goal`) to Firest
     - `categoryId: string`
     - `startTime: string | null`
     - `endTime: string | null`
-    - `photoUrl: string | null`
+    - `photoPath: string | null` (local file path, not uploaded to cloud)
     - `createdAt: Timestamp`
     - `updatedAt: Timestamp`
 
@@ -67,8 +67,8 @@ Do not store `userId` inside these documents; it is implied by the path.
    - Get `uid = auth.currentUser!!.uid`.
    - Create `users/{uid}` document with profile fields.
    - If a profile photo exists:
-     - Upload to Storage path `profile_photos/{uid}/profile.jpg`.
-     - Store the download URL in `profilePhotoUrl`.
+     - Save it to local app storage
+     - Store the local file path in `profilePhotoPath` (not uploaded to cloud)
 
 ### 3.2 Login
 
@@ -118,28 +118,13 @@ service cloud.firestore {
 
 Agents may add validation (e.g., `amount > 0`, `minGoal <= maxGoal`) but must preserve per-user isolation.
 
-## 5. Firebase Storage
+## 5. Local Photo Storage
 
-### 5.1 Paths
-
-- Profile photos: `profile_photos/{uid}/profile.jpg`
-- Expense photos: `expense_photos/{uid}/{expenseId}.jpg`
-
-### 5.2 Rules
-
-```javascript
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /profile_photos/{userId}/{fileName} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /expense_photos/{userId}/{fileName} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
+Photos (profile and expense) are stored locally on the device, not uploaded to Firebase Storage:
+- Profile photos: Saved in app-specific internal storage with unique filenames
+- Expense photos: Saved in app-specific internal storage with unique filenames
+- Only the local file paths are stored in Firestore (in `profilePhotoPath` and `photoPath` fields)
+- Photos remain device-specific and are not synced across devices
 
 ## 6. Agent Guidelines
 

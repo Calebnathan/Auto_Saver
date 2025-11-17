@@ -116,7 +116,7 @@ class LoginActivity : AppCompatActivity() {
                     password = "",
                     fullName = profile.fullName,
                     contact = profile.contact,
-                    profilePhotoPath = profile.profilePhotoUrl
+                    profilePhotoPath = profile.profilePhotoPath
                 )
             ).toInt()
         } else {
@@ -124,7 +124,7 @@ class LoginActivity : AppCompatActivity() {
                 existingUser.copy(
                     fullName = profile.fullName,
                     contact = profile.contact,
-                    profilePhotoPath = profile.profilePhotoUrl ?: existingUser.profilePhotoPath
+                    profilePhotoPath = profile.profilePhotoPath ?: existingUser.profilePhotoPath
                 )
             )
             existingUser.id

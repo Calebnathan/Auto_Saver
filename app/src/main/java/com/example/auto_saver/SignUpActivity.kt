@@ -186,12 +186,12 @@ class SignUpActivity : AppCompatActivity() {
                 val authResult = auth.createUserWithEmailAndPassword(email, password).await()
                 val uid = authResult.user?.uid ?: throw IllegalStateException("Unable to create user")
 
-                val photoUrl = photoUri?.let { uploadProfilePhoto(uid, it) }
+                val photoPath = photoUri?.let { saveProfilePhotoLocally(uid, it) }
                 val profile = UserProfile(
                     uid = uid,
                     fullName = fullName,
                     contact = contact,
-                    profilePhotoUrl = photoUrl
+                    profilePhotoPath = photoPath
                 )
 
                 val localUserId = when (val createResult = userRemoteDataSource.createOrUpdateUser(profile, true)) {
@@ -217,13 +217,18 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun uploadProfilePhoto(uid: String, uri: Uri): String? {
-        return when (val result = userRemoteDataSource.uploadProfilePhoto(uid, uri)) {
-            is FirestoreResult.Success -> result.data
-            is FirestoreResult.Error -> {
-                Toast.makeText(this, "Profile photo upload failed, continuing without photo.", Toast.LENGTH_SHORT).show()
-                null
+    private fun saveProfilePhotoLocally(uid: String, uri: Uri): String? {
+        return try {
+            val photoFile = File(filesDir, "profile_photo_$uid.jpg")
+            contentResolver.openInputStream(uri)?.use { input ->
+                photoFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
+            photoFile.absolutePath
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to save profile photo locally.", Toast.LENGTH_SHORT).show()
+            null
         }
     }
 
@@ -236,7 +241,7 @@ class SignUpActivity : AppCompatActivity() {
                     password = "",
                     fullName = profile.fullName,
                     contact = profile.contact,
-                    profilePhotoPath = profile.profilePhotoUrl
+                    profilePhotoPath = profile.profilePhotoPath
                 )
             ).toInt()
         } else {
@@ -244,7 +249,7 @@ class SignUpActivity : AppCompatActivity() {
                 existingUser.copy(
                     fullName = profile.fullName,
                     contact = profile.contact,
-                    profilePhotoPath = profile.profilePhotoUrl ?: existingUser.profilePhotoPath
+                    profilePhotoPath = profile.profilePhotoPath ?: existingUser.profilePhotoPath
                 )
             )
             existingUser.id

@@ -8,7 +8,7 @@ data class UserProfile(
     val uid: String,
     val fullName: String = "",
     val contact: String = "",
-    val profilePhotoUrl: String? = null,
+    val profilePhotoPath: String? = null,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )
@@ -40,7 +40,7 @@ data class ExpenseRecord(
     val description: String? = null,
     val startTime: String? = null,
     val endTime: String? = null,
-    val photoUrl: String? = null,
+    val photoPath: String? = null,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )

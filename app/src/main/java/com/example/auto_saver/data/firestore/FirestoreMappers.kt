@@ -12,12 +12,12 @@ fun DocumentSnapshot.toUserProfile(): UserProfile? {
     if (!exists()) return null
     val fullName = getString("fullName") ?: ""
     val contact = getString("contact") ?: ""
-    val profilePhotoUrl = getString("profilePhotoUrl")
+    val profilePhotoPath = getString("profilePhotoPath")
     return UserProfile(
         uid = id,
         fullName = fullName,
         contact = contact,
-        profilePhotoUrl = profilePhotoUrl,
+        profilePhotoPath = profilePhotoPath,
         createdAt = getTimestamp("createdAt").toEpochMilli(),
         updatedAt = getTimestamp("updatedAt").toEpochMilli()
     )
@@ -65,7 +65,7 @@ fun DocumentSnapshot.toExpenseRecord(uid: String): ExpenseRecord? {
         description = getString("description"),
         startTime = getString("startTime"),
         endTime = getString("endTime"),
-        photoUrl = getString("photoUrl"),
+        photoPath = getString("photoPath"),
         createdAt = getTimestamp("createdAt").toEpochMilli(),
         updatedAt = getTimestamp("updatedAt").toEpochMilli()
     )
@@ -75,7 +75,7 @@ fun UserProfile.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
     hashMapOf<String, Any?>(
         "fullName" to fullName,
         "contact" to contact,
-        "profilePhotoUrl" to profilePhotoUrl,
+        "profilePhotoPath" to profilePhotoPath,
         "updatedAt" to FieldValue.serverTimestamp()
     ).apply {
         if (isNew) put("createdAt", FieldValue.serverTimestamp())
@@ -107,7 +107,7 @@ fun ExpenseRecord.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
         "description" to description,
         "startTime" to startTime,
         "endTime" to endTime,
-        "photoUrl" to photoUrl,
+        "photoPath" to photoPath,
         "updatedAt" to FieldValue.serverTimestamp()
     ).apply {
         if (isNew) put("createdAt", FieldValue.serverTimestamp())
