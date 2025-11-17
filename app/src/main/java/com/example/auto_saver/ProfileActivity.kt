@@ -8,9 +8,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.auto_saver.data.firestore.UserRemoteDataSource
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -26,12 +28,15 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var etPassword: TextInputEditText
     private lateinit var btnSave: MaterialButton
 
-    private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
+    private val userRemoteDataSource: UserRemoteDataSource by lazy { MyApplication.userRemoteDataSource }
+    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     private var photoUri: Uri? = null
     private var tempPhotoUri: Uri? = null
-    private var currentUser: User? = null
+    private var currentFullName: String = ""
+    private var currentContact: String = ""
+    private var currentProfilePhotoPath: String? = null
 
     // Activity result launchers
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -52,8 +57,7 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
-        database = AppDatabase.getDatabase(this)
-        userPrefs = UserPreferences(this)
+        userPrefs = MyApplication.userPreferences
 
         initializeViews()
         setupToolbar()
@@ -84,31 +88,56 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun loadUserData() {
         lifecycleScope.launch {
-            val userId = userPrefs.getCurrentUserId()
-            if (userId == -1) {
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
                 Toast.makeText(this@ProfileActivity, "Please log in first", Toast.LENGTH_SHORT).show()
                 finish()
                 return@launch
             }
 
-            currentUser = database.userDao().getUserById(userId)
-            currentUser?.let { user ->
-                etFullName.setText(user.fullName)
-                etContact.setText(user.contact)
+            try {
+                val result = userRemoteDataSource.fetchUser(uid)
+                when (result) {
+                    is com.example.auto_saver.data.firestore.FirestoreResult.Success -> {
+                        val userProfile = result.data
+                        currentFullName = userProfile.fullName
+                        currentContact = userProfile.contact
+                        currentProfilePhotoPath = userProfile.profilePhotoPath
 
-                // Load profile photo if exists
-                user.profilePhotoPath?.let { path ->
-                    val file = File(path)
-                    if (file.exists()) {
-                        val uri = FileProvider.getUriForFile(
+                        etFullName.setText(userProfile.fullName)
+                        etContact.setText(userProfile.contact)
+
+                        // Load profile photo if exists
+                        userProfile.profilePhotoPath?.let { path ->
+                            val file = File(path)
+                            if (file.exists()) {
+                                val uri = FileProvider.getUriForFile(
+                                    this@ProfileActivity,
+                                    "${packageName}.fileprovider",
+                                    file
+                                )
+                                ivProfilePhoto.setImageURI(uri)
+                                ivProfilePhoto.imageTintList = null
+                            }
+                        }
+                    }
+                    is com.example.auto_saver.data.firestore.FirestoreResult.Error -> {
+                        Toast.makeText(
                             this@ProfileActivity,
-                            "${packageName}.fileprovider",
-                            file
-                        )
-                        ivProfilePhoto.setImageURI(uri)
-                        ivProfilePhoto.imageTintList = null // Remove tint to show actual photo
+                            "Error loading profile: ${result.throwable.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
                     }
                 }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@ProfileActivity,
+                    "Error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
             }
         }
     }
@@ -171,39 +200,85 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            currentUser?.let { user ->
+            val uid = try {
+                userPrefs.requireUserUid()
+            } catch (e: IllegalStateException) {
+                Toast.makeText(this@ProfileActivity, "Please log in first", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            try {
                 // Save photo if changed
                 val photoPath = photoUri?.let { uri ->
-                    val photoFile = File(filesDir, "profile_${user.id}_${System.currentTimeMillis()}.jpg")
+                    val photoFile = File(filesDir, "profile_${uid}_${System.currentTimeMillis()}.jpg")
                     contentResolver.openInputStream(uri)?.use { input ->
                         photoFile.outputStream().use { output ->
                             input.copyTo(output)
                         }
                     }
                     photoFile.absolutePath
-                } ?: if (ivProfilePhoto.drawable == null || photoUri == null) {
-                    null // Photo was removed
+                } ?: if (photoUri == null && currentProfilePhotoPath != null) {
+                    currentProfilePhotoPath // Keep existing photo
                 } else {
-                    user.profilePhotoPath // Keep existing photo
+                    null // Photo was removed or never existed
                 }
 
-                // Update user
-                val updatedUser = user.copy(
+                // Update user profile in Firestore
+                val updatedProfile = com.example.auto_saver.data.model.UserProfile(
+                    uid = uid,
                     fullName = fullName,
                     contact = contact,
-                    password = if (newPassword.isNotEmpty()) newPassword else user.password,
-                    profilePhotoPath = photoPath
+                    profilePhotoPath = photoPath,
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
                 )
 
-                database.userDao().update(updatedUser)
+                val result = userRemoteDataSource.createOrUpdateUser(updatedProfile, isNew = false)
 
+                when (result) {
+                    is com.example.auto_saver.data.firestore.FirestoreResult.Success -> {
+                        // Update password in Firebase Auth if changed
+                        if (newPassword.isNotEmpty()) {
+                            firebaseAuth.currentUser?.updatePassword(newPassword)
+                                ?.addOnSuccessListener {
+                                    Toast.makeText(
+                                        this@ProfileActivity,
+                                        "Profile and password updated successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    finish()
+                                }
+                                ?.addOnFailureListener { error ->
+                                    Toast.makeText(
+                                        this@ProfileActivity,
+                                        "Profile updated but password change failed: ${error.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    finish()
+                                }
+                        } else {
+                            Toast.makeText(
+                                this@ProfileActivity,
+                                "Profile updated successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish()
+                        }
+                    }
+                    is com.example.auto_saver.data.firestore.FirestoreResult.Error -> {
+                        Toast.makeText(
+                            this@ProfileActivity,
+                            "Failed to update profile: ${result.throwable.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
                 Toast.makeText(
                     this@ProfileActivity,
-                    "Profile updated successfully",
-                    Toast.LENGTH_SHORT
+                    "Error: ${e.message}",
+                    Toast.LENGTH_LONG
                 ).show()
-
-                finish()
             }
         }
     }

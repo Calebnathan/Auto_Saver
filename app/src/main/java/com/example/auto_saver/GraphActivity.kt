@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.data.BarData
@@ -13,26 +14,31 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
-import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
-data class ChartExpense(val amount: Double, val date: String, val categoryId: Int)
 
 class GraphActivity : AppCompatActivity() {
 
     private lateinit var startDateButton: MaterialButton
     private lateinit var endDateButton: MaterialButton
     private lateinit var barChart: BarChart
-    private val db = FirebaseFirestore.getInstance()
+    private lateinit var userPrefs: UserPreferences
+    
+    private val expenseRepository by lazy { MyApplication.expenseRepository }
+    private val goalRepository by lazy { MyApplication.goalRepository }
+    private val categoryRepository by lazy { MyApplication.categoryRepository }
 
-    private var startDate: Date? = null
-    private var endDate: Date? = null
+    private var startDate: String? = null
+    private var endDate: String? = null
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_graph)
+
+        userPrefs = MyApplication.userPreferences
 
         val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
         toolbar.setNavigationOnClickListener { finish() }
@@ -54,14 +60,13 @@ class GraphActivity : AppCompatActivity() {
         val datePicker = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
             val pickedDate = Calendar.getInstance()
             pickedDate.set(selectedYear, selectedMonth, selectedDay)
-            val date = pickedDate.time
-            val formattedDate = dateFormat.format(date)
+            val formattedDate = dateFormat.format(pickedDate.time)
 
             if (isStart) {
-                startDate = date
+                startDate = formattedDate
                 startDateButton.text = formattedDate
             } else {
-                endDate = date
+                endDate = formattedDate
                 endDateButton.text = formattedDate
             }
 
@@ -75,33 +80,48 @@ class GraphActivity : AppCompatActivity() {
     }
 
     private fun fetchDataAndDrawChart() {
-        val masterId = "xJHQxxUiDtUfOLv7NGza" // your master_table document ID
-        val userId = "BWW8S82t1ChGAwPRaT" // your test user's document ID
+        val uid = try {
+            userPrefs.requireUserUid()
+        } catch (e: IllegalStateException) {
+            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
-        db.collection("master_table")
-            .document(masterId)
-            .collection("user_table")
-            .document(userId)
-            .collection("expense_table")
-            .get()
-            .addOnSuccessListener { result ->
-                val expenseList = mutableListOf<ChartExpense>()
-                for (document in result) {
-                    val amount = document.getDouble("amount") ?: 0.0
-                    val date = document.getString("date") ?: ""
-                    val categoryId = document.getLong("category_id")?.toInt() ?: 0
+        val start = startDate ?: return
+        val end = endDate ?: return
 
-                    expenseList.add(ChartExpense(amount, date, categoryId))
+        lifecycleScope.launch {
+            try {
+                // Get category summaries for the date range
+                val summaries = expenseRepository.getCategorySummaries(uid, start, end).first()
+
+                if (summaries.isEmpty()) {
+                    Toast.makeText(
+                        this@GraphActivity,
+                        "No data for selected period",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    barChart.clear()
+                    return@launch
                 }
 
-                updateBarChart(expenseList)
+                // Get current month goal for limit lines
+                val currentMonth = java.time.YearMonth.now().toString()
+                val goal = goalRepository.getGoalForMonth(uid, currentMonth)
+
+                drawBarChart(summaries.associate { it.categoryName to it.total }, goal)
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@GraphActivity,
+                    "Error fetching data: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Error fetching data: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
-    private fun drawBarChart(categoryTotals: Map<String, Double>) {
+    private fun drawBarChart(categoryTotals: Map<String, Double>, goal: com.example.auto_saver.data.model.GoalRecord?) {
         val entries = ArrayList<BarEntry>()
         val categories = ArrayList<String>()
 
@@ -112,60 +132,33 @@ class GraphActivity : AppCompatActivity() {
             index++
         }
 
-        val dataSet = BarDataSet(entries, "Amount Spent")
-        dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
-
-        val barData = BarData(dataSet)
-        barChart.data = barData
-
-        // Add goal lines (example: 1000 min, 5000 max)
-        val minGoal = LimitLine(1000f, "Min Goal")
-        minGoal.lineColor = getColor(android.R.color.holo_green_dark)
-        minGoal.lineWidth = 2f
-
-        val maxGoal = LimitLine(5000f, "Max Goal")
-        maxGoal.lineColor = getColor(android.R.color.holo_red_dark)
-        maxGoal.lineWidth = 2f
-
-        val yAxis = barChart.axisLeft
-        yAxis.removeAllLimitLines()
-        yAxis.addLimitLine(minGoal)
-        yAxis.addLimitLine(maxGoal)
-
-        barChart.axisRight.isEnabled = false
-        barChart.xAxis.granularity = 1f
-        barChart.description.isEnabled = false
-        barChart.animateY(1000)
-        barChart.invalidate()
-    }
-
-    private fun updateBarChart(expenses: List<ChartExpense>) {
-        if (expenses.isEmpty()) {
-            Toast.makeText(this, "No data for selected period", Toast.LENGTH_SHORT).show()
-            barChart.clear()
-            return
-        }
-
-        val entries = expenses.mapIndexed { index, expense ->
-            BarEntry(index.toFloat(), expense.amount.toFloat())
-        }
-
-        val dataSet = BarDataSet(entries, "Expenses")
+        val dataSet = BarDataSet(entries, "Amount Spent by Category")
         dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
         dataSet.valueTextColor = Color.WHITE
         dataSet.valueTextSize = 12f
 
-        val data = BarData(dataSet)
-        barChart.data = data
+        val barData = BarData(dataSet)
+        barChart.data = barData
 
         val yAxis = barChart.axisLeft
         yAxis.removeAllLimitLines()
-        val maxGoal = LimitLine(5000f, "Max Goal")
-        maxGoal.lineColor = Color.RED
-        yAxis.addLimitLine(maxGoal)
+
+        // Add goal lines if goal exists
+        goal?.let {
+            val minGoal = LimitLine(it.minGoal.toFloat(), "Min Goal")
+            minGoal.lineColor = getColor(android.R.color.holo_green_dark)
+            minGoal.lineWidth = 2f
+
+            val maxGoal = LimitLine(it.maxGoal.toFloat(), "Max Goal")
+            maxGoal.lineColor = getColor(android.R.color.holo_red_dark)
+            maxGoal.lineWidth = 2f
+
+            yAxis.addLimitLine(minGoal)
+            yAxis.addLimitLine(maxGoal)
+        }
 
         barChart.axisRight.isEnabled = false
-        barChart.xAxis.isEnabled = false
+        barChart.xAxis.granularity = 1f
         barChart.description.isEnabled = false
         barChart.animateY(1000)
         barChart.invalidate()

@@ -5,8 +5,33 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 /**
- * Repository layer that abstracts data sources and provides clean API for ViewModels
+ * @deprecated This repository is deprecated and should not be used for new code.
+ * Use UnifiedExpenseRepository instead, which provides Firestore-first data access
+ * with Room caching for offline support.
+ * 
+ * Migration guide:
+ * - Replace ExpenseRepository with UnifiedExpenseRepository
+ * - Methods now require Firebase Auth uid (String) instead of userId (Int)
+ * - Return types use CloudModels (ExpenseRecord, CategoryRecord) instead of Room entities
+ * - Photo handling is built into createExpense/updateExpense methods
+ * 
+ * Example:
+ * ```
+ * // Old:
+ * val expenses = expenseRepository.getExpensesByDateRange(userId, start, end)
+ * 
+ * // New:
+ * val expenses = unifiedExpenseRepository.observeExpenses(uid, start, end)
+ * ```
  */
+@Deprecated(
+    message = "Use UnifiedExpenseRepository instead for Firestore-first data access",
+    replaceWith = ReplaceWith(
+        "UnifiedExpenseRepository",
+        "com.example.auto_saver.data.repository.UnifiedExpenseRepository"
+    ),
+    level = DeprecationLevel.WARNING
+)
 class ExpenseRepository(
     private val expenseDao: ExpenseDao,
     private val categoryDao: CategoryDao,
@@ -109,4 +134,3 @@ class ExpenseRepository(
         return expenseDao.getExpenseCount(userId).map { it > 0 }
     }
 }
-

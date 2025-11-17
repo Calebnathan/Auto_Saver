@@ -99,7 +99,7 @@ class UnifiedExpenseRepositoryTest {
     @Test
     fun `observeExpenses falls back to cache on Firestore error`() = runTest {
         val cachedRoomExpenses = listOf(
-            Expense(1, testLegacyUserId, testRoomCategoryId, "Coffee", 5.0, "2025-01-15", null, 1000L)
+            Expense(1, testLegacyUserId, testRoomCategoryId, "2025-01-15", 5.0, "Coffee", null, null, null)
         )
         
         whenever(remoteDataSource.observeExpenses(testUid))
