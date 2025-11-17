@@ -1,46 +1,60 @@
 package com.example.auto_saver
 
 import android.app.DatePickerDialog
-import android.graphics.Color
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.LimitLine
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.utils.ColorTemplate
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.auto_saver.DateRange
+import com.example.auto_saver.ui.components.GraphMetric
+import com.example.auto_saver.ui.components.GraphRenderData
+import com.example.auto_saver.ui.components.GraphUiState
+import com.example.auto_saver.ui.components.SpendingGraphView
+import com.example.auto_saver.ui.graph.GraphViewModel
+import com.example.auto_saver.ui.graph.GraphViewModelFactory
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.flow.first
+import com.google.android.material.button.MaterialButtonToggleGroup
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 class GraphActivity : AppCompatActivity() {
+
+    private val graphViewModel: GraphViewModel by viewModels {
+        GraphViewModelFactory(
+            expenseRepository = MyApplication.expenseRepository,
+            goalRepository = MyApplication.goalRepository,
+            userPreferences = MyApplication.userPreferences
+        )
+    }
 
     private lateinit var startDateButton: MaterialButton
     private lateinit var endDateButton: MaterialButton
     private lateinit var selectedRangeText: TextView
-    private lateinit var barChart: BarChart
-    private lateinit var userPrefs: UserPreferences
-    
-    private val expenseRepository by lazy { MyApplication.expenseRepository }
-    private val goalRepository by lazy { MyApplication.goalRepository }
-    private val categoryRepository by lazy { MyApplication.categoryRepository }
+    private lateinit var metricToggle: MaterialButtonToggleGroup
+    private lateinit var graphRangeLabel: TextView
+    private lateinit var comparisonSummary: TextView
+    private lateinit var shareButton: MaterialButton
+    private lateinit var graphView: SpendingGraphView
+    private lateinit var legendCurrentIndicator: View
+    private lateinit var legendPreviousIndicator: View
 
-    private var startDate: String? = null
-    private var endDate: String? = null
+    private var lastRenderData: GraphRenderData? = null
+    private var latestRange: DateRange? = null
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_graph)
-
-        userPrefs = MyApplication.userPreferences
 
         val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
         toolbar.setNavigationOnClickListener { finish() }
@@ -48,14 +62,131 @@ class GraphActivity : AppCompatActivity() {
         startDateButton = findViewById(R.id.startDateButton)
         endDateButton = findViewById(R.id.endDateButton)
         selectedRangeText = findViewById(R.id.tv_selected_range)
-        barChart = findViewById(R.id.barChart)
+        metricToggle = findViewById(R.id.metric_toggle_full)
+        graphRangeLabel = findViewById(R.id.tv_graph_range_label)
+        comparisonSummary = findViewById(R.id.tv_comparison_summary)
+        shareButton = findViewById(R.id.btn_share_graph)
+        graphView = findViewById(R.id.view_full_graph)
+        legendCurrentIndicator = findViewById(R.id.legend_current_indicator)
+        legendPreviousIndicator = findViewById(R.id.legend_previous_indicator)
 
         startDateButton.setOnClickListener { pickDate(isStart = true) }
         endDateButton.setOnClickListener { pickDate(isStart = false) }
+
+        metricToggle.check(R.id.btn_metric_daily_full)
+        metricToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val metric = when (checkedId) {
+                R.id.btn_metric_daily_full -> GraphMetric.DAILY
+                R.id.btn_metric_weekly_full -> GraphMetric.WEEKLY
+                R.id.btn_metric_monthly_full -> GraphMetric.MONTHLY
+                R.id.btn_metric_yearly_full -> GraphMetric.YEARLY
+                else -> GraphMetric.DAILY
+            }
+            graphViewModel.setMetric(metric)
+        }
+
+        shareButton.setOnClickListener { shareSnapshot() }
+
+        tintLegendIndicators()
+        observeViewModel()
+    }
+
+    private fun tintLegendIndicators() {
+        val currentColor = resolveThemeColor(androidx.appcompat.R.attr.colorPrimary)
+        val previousColor = resolveThemeColor(androidx.appcompat.R.attr.colorAccent)
+        ViewCompat.setBackgroundTintList(legendCurrentIndicator, ColorStateList.valueOf(currentColor))
+        ViewCompat.setBackgroundTintList(legendPreviousIndicator, ColorStateList.valueOf(previousColor))
+    }
+
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                graphViewModel.dateRange.collect { range ->
+                    latestRange = range
+                    startDateButton.text = range.start
+                    endDateButton.text = range.end
+                    if (lastRenderData == null) {
+                        selectedRangeText.text = getString(
+                            R.string.graph_range_short_format,
+                            range.start,
+                            range.end
+                        )
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                graphViewModel.graphState.collect { state ->
+                    graphView.setState(state)
+                    when (state) {
+                        is GraphUiState.Success -> {
+                            lastRenderData = state.data
+                            val formattedRange = state.data.rangeLabel
+                            selectedRangeText.text = formattedRange
+                            graphRangeLabel.text = formattedRange
+                            val current = getString(R.string.currency_format, state.data.totalSpent)
+                            val previous = getString(R.string.currency_format, state.data.comparisonTotal)
+                            comparisonSummary.text = getString(R.string.graph_comparison_format, current, previous)
+                            shareButton.isEnabled = true
+                        }
+                        GraphUiState.Empty -> {
+                            lastRenderData = null
+                            graphRangeLabel.text = getString(R.string.graph_empty_state)
+                            comparisonSummary.text = getString(R.string.graph_no_data_message)
+                            shareButton.isEnabled = false
+                            latestRange?.let {
+                                selectedRangeText.text = getString(
+                                    R.string.graph_range_short_format,
+                                    it.start,
+                                    it.end
+                                )
+                            }
+                        }
+                        is GraphUiState.Error -> {
+                            lastRenderData = null
+                            graphRangeLabel.text = getString(R.string.graph_error_state)
+                            comparisonSummary.text = getString(R.string.graph_error_state)
+                            shareButton.isEnabled = false
+                            Toast.makeText(this@GraphActivity, state.message, Toast.LENGTH_SHORT).show()
+                            latestRange?.let {
+                                selectedRangeText.text = getString(
+                                    R.string.graph_range_short_format,
+                                    it.start,
+                                    it.end
+                                )
+                            }
+                        }
+                        GraphUiState.Loading -> {
+                            graphRangeLabel.text = getString(R.string.spending_graph_subtitle)
+                            shareButton.isEnabled = false
+                            comparisonSummary.text = getString(R.string.graph_loading_message)
+                            latestRange?.let {
+                                selectedRangeText.text = getString(
+                                    R.string.graph_range_short_format,
+                                    it.start,
+                                    it.end
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun pickDate(isStart: Boolean) {
         val calendar = Calendar.getInstance()
+        val dateString = if (isStart) startDateButton.text?.toString() else endDateButton.text?.toString()
+        if (!dateString.isNullOrEmpty()) {
+            val parsed = runCatching { dateFormat.parse(dateString) }.getOrNull()
+            if (parsed != null) {
+                calendar.time = parsed
+            }
+        }
+
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -64,120 +195,44 @@ class GraphActivity : AppCompatActivity() {
             val pickedDate = Calendar.getInstance()
             pickedDate.set(selectedYear, selectedMonth, selectedDay)
             val formattedDate = dateFormat.format(pickedDate.time)
-
             if (isStart) {
-                startDate = formattedDate
-                startDateButton.text = formattedDate
+                val end = latestRange?.end ?: formattedDate
+                graphViewModel.setDateRange(formattedDate, end)
             } else {
-                endDate = formattedDate
-                endDateButton.text = formattedDate
+                val start = latestRange?.start ?: formattedDate
+                graphViewModel.setDateRange(start, formattedDate)
             }
-
-            updateSelectedRangeLabel()
-
-            if (startDate != null && endDate != null) {
-                fetchDataAndDrawChart()
-            }
-
         }, year, month, day)
 
         datePicker.show()
     }
 
-    private fun fetchDataAndDrawChart() {
-        val uid = try {
-            userPrefs.requireUserUid()
-        } catch (e: IllegalStateException) {
-            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show()
-            finish()
+    private fun shareSnapshot() {
+        val data = lastRenderData ?: run {
+            Toast.makeText(this, R.string.graph_share_no_data, Toast.LENGTH_SHORT).show()
             return
         }
 
-        val start = startDate ?: return
-        val end = endDate ?: return
+        val body = getString(
+            R.string.graph_share_body,
+            data.rangeLabel,
+            getString(R.string.currency_format, data.totalSpent),
+            getString(R.string.currency_format, data.comparisonTotal)
+        )
 
-        updateSelectedRangeLabel()
-
-        lifecycleScope.launch {
-            try {
-                // Get category summaries for the date range
-                val summaries = expenseRepository.getCategorySummaries(uid, start, end).first()
-
-                if (summaries.isEmpty()) {
-                    Toast.makeText(
-                        this@GraphActivity,
-                        "No data for selected period",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    barChart.clear()
-                    return@launch
-                }
-
-                // Get current month goal for limit lines
-                val currentMonth = java.time.YearMonth.now().toString()
-                val goal = goalRepository.getGoalForMonth(uid, currentMonth)
-
-                drawBarChart(summaries.associate { it.categoryName to it.total }, goal)
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this@GraphActivity,
-                    "Error fetching data: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.graph_share_subject))
+            putExtra(Intent.EXTRA_TEXT, body)
         }
+
+        startActivity(Intent.createChooser(intent, getString(R.string.graph_share_subject)))
     }
 
-    private fun drawBarChart(categoryTotals: Map<String, Double>, goal: com.example.auto_saver.data.model.GoalRecord?) {
-        val entries = ArrayList<BarEntry>()
-        val categories = ArrayList<String>()
-
-        var index = 0f
-        for ((category, total) in categoryTotals) {
-            entries.add(BarEntry(index, total.toFloat()))
-            categories.add(category)
-            index++
-        }
-
-        val dataSet = BarDataSet(entries, "Amount Spent by Category")
-        dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
-        dataSet.valueTextColor = Color.WHITE
-        dataSet.valueTextSize = 12f
-
-        val barData = BarData(dataSet)
-        barChart.data = barData
-
-        val yAxis = barChart.axisLeft
-        yAxis.removeAllLimitLines()
-
-        // Add goal lines if goal exists
-        goal?.let {
-            val minGoal = LimitLine(it.minGoal.toFloat(), "Min Goal")
-            minGoal.lineColor = getColor(android.R.color.holo_green_dark)
-            minGoal.lineWidth = 2f
-
-            val maxGoal = LimitLine(it.maxGoal.toFloat(), "Max Goal")
-            maxGoal.lineColor = getColor(android.R.color.holo_red_dark)
-            maxGoal.lineWidth = 2f
-
-            yAxis.addLimitLine(minGoal)
-            yAxis.addLimitLine(maxGoal)
-        }
-
-        barChart.axisRight.isEnabled = false
-        barChart.xAxis.granularity = 1f
-        barChart.description.isEnabled = false
-        barChart.animateY(1000)
-        barChart.invalidate()
-    }
-
-    private fun updateSelectedRangeLabel() {
-        val start = startDate
-        val end = endDate
-        if (start.isNullOrEmpty() || end.isNullOrEmpty()) {
-            selectedRangeText.text = ""
-        } else {
-            selectedRangeText.text = getString(R.string.select_date_range, start, end)
-        }
+    private fun resolveThemeColor(attr: Int): Int {
+        val typedArray = obtainStyledAttributes(intArrayOf(attr))
+        val color = typedArray.getColor(0, 0)
+        typedArray.recycle()
+        return color
     }
 }

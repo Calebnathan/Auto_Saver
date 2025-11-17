@@ -1,5 +1,8 @@
 package com.example.auto_saver
 
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+
 /**
  * UI-specific data models for the presentation layer
  */
@@ -16,6 +19,21 @@ data class DateRange(
     val start: String,
     val end: String
 ) {
+
+    fun durationInDays(): Long {
+        val startDate = LocalDate.parse(start)
+        val endDate = LocalDate.parse(end)
+        return ChronoUnit.DAYS.between(startDate, endDate) + 1
+    }
+
+    fun previousPeriod(): DateRange {
+        val startDate = LocalDate.parse(start)
+        val periodLength = durationInDays()
+        val previousEnd = startDate.minusDays(1)
+        val previousStart = previousEnd.minusDays(periodLength - 1)
+        return DateRange(previousStart.toString(), previousEnd.toString())
+    }
+
     companion object {
         fun getCurrentMonth(): DateRange {
             val now = java.time.LocalDate.now()

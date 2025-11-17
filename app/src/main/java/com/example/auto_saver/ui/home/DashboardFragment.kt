@@ -2,7 +2,6 @@ package com.example.auto_saver.ui.home
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,16 +15,12 @@ import com.example.auto_saver.GraphActivity
 import com.example.auto_saver.MyApplication
 import com.example.auto_saver.R
 import com.example.auto_saver.collectWithLifecycle
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.ValueFormatter
+import com.example.auto_saver.ui.components.GraphMetric
+import com.example.auto_saver.ui.components.GraphUiState
+import com.example.auto_saver.ui.components.SpendingGraphView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
-import java.time.LocalDate
 
 class DashboardFragment : Fragment() {
 
@@ -51,7 +46,9 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val chart = view.findViewById<LineChart>(R.id.chart_spending)
+        val graphView = view.findViewById<SpendingGraphView>(R.id.view_spending_graph)
+        val graphSubtitle = view.findViewById<TextView>(R.id.tv_spending_graph_subtitle)
+        val metricToggle = view.findViewById<MaterialButtonToggleGroup>(R.id.metric_toggle)
         val totalSpentText = view.findViewById<TextView>(R.id.tv_total_spent_value)
         val expenseCountText = view.findViewById<TextView>(R.id.tv_expense_count_value)
         val goalProgressText = view.findViewById<TextView>(R.id.tv_goal_progress_value)
@@ -63,8 +60,6 @@ class DashboardFragment : Fragment() {
         val btnViewAnalytics = view.findViewById<MaterialButton>(R.id.btn_view_analytics)
         val btnQuickAddExpense = view.findViewById<MaterialButton>(R.id.btn_quick_add_expense)
 
-        configureChartAppearance(chart)
-
         // Default to 30-day range to match ViewModel initial state
         rangeToggle.check(R.id.btn_range_30)
 
@@ -75,6 +70,18 @@ class DashboardFragment : Fragment() {
                 R.id.btn_range_30 -> dashboardViewModel.setLast30Days()
                 R.id.btn_range_90 -> dashboardViewModel.setLast90Days()
             }
+        }
+
+        metricToggle.check(R.id.btn_metric_daily)
+        metricToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val metric = when (checkedId) {
+                R.id.btn_metric_daily -> GraphMetric.DAILY
+                R.id.btn_metric_weekly -> GraphMetric.WEEKLY
+                R.id.btn_metric_monthly -> GraphMetric.MONTHLY
+                else -> GraphMetric.DAILY
+            }
+            dashboardViewModel.setGraphMetric(metric)
         }
 
         dashboardViewModel.totalSpent.collectWithLifecycle(viewLifecycleOwner) { total ->
@@ -122,72 +129,14 @@ class DashboardFragment : Fragment() {
             startActivity(Intent(requireContext(), AddExpenseActivity::class.java))
         }
 
-        dashboardViewModel.dailySpending.collectWithLifecycle(viewLifecycleOwner) { points ->
-            updateChart(chart, points)
-        }
-    }
-
-    private fun configureChartAppearance(chart: LineChart) {
-        chart.description.isEnabled = false
-        chart.setTouchEnabled(true)
-        chart.setPinchZoom(true)
-        chart.axisRight.isEnabled = false
-        chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        chart.xAxis.setDrawGridLines(false)
-        chart.axisLeft.setDrawGridLines(true)
-        chart.legend.isEnabled = false
-    }
-
-    private fun updateChart(chart: LineChart, points: List<com.example.auto_saver.DailySpendingPoint>) {
-        if (points.isEmpty()) {
-            chart.data = null
-            chart.invalidate()
-            return
-        }
-
-        val entries = points.mapIndexed { index, point ->
-            Entry(index.toFloat(), point.total.toFloat())
-        }
-
-        val primaryColor = resolveThemeColor(chart, androidx.appcompat.R.attr.colorPrimary)
-
-        val dataSet = LineDataSet(entries, "").apply {
-            color = primaryColor
-            setCircleColor(primaryColor)
-            lineWidth = 2f
-            circleRadius = 3f
-            setDrawValues(false)
-            setDrawFilled(false)
-        }
-
-        chart.data = LineData(dataSet)
-
-        chart.xAxis.valueFormatter = object : ValueFormatter() {
-            override fun getAxisLabel(value: Float, axis: com.github.mikephil.charting.components.AxisBase?): String {
-                val index = value.toInt()
-                if (index < 0 || index >= points.size) return ""
-                val date = try {
-                    LocalDate.parse(points[index].date)
-                } catch (e: Exception) {
-                    return ""
-                }
-
-                val size = points.size
-                return when {
-                    size <= 10 -> date.dayOfMonth.toString()
-                    index == 0 || index == size / 2 || index == size - 1 -> date.dayOfMonth.toString()
-                    else -> ""
-                }
+        dashboardViewModel.graphState.collectWithLifecycle(viewLifecycleOwner) { state ->
+            graphView.setState(state)
+            graphSubtitle.text = when (state) {
+                is GraphUiState.Success -> state.data.rangeLabel
+                GraphUiState.Empty -> getString(R.string.graph_empty_state)
+                is GraphUiState.Error -> getString(R.string.graph_error_state)
+                GraphUiState.Loading -> getString(R.string.spending_graph_subtitle)
             }
         }
-
-        chart.invalidate()
-    }
-
-    private fun resolveThemeColor(view: View, attrResId: Int): Int {
-        val typedValue = TypedValue()
-        val theme = view.context.theme
-        theme.resolveAttribute(attrResId, typedValue, true)
-        return typedValue.data
     }
 }

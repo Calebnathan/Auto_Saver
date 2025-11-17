@@ -87,27 +87,27 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 - [x] Create `fragment_dashboard.xml` layout:
   - [x] Summary Card (total spent, expense count)
   - [x] **NEW: Spending Graph Card** (compact view) with LineChart placeholder
-    - [ ] Mini line chart showing last 7-30 days (data + styling)
+    - [x] Mini line chart showing last 7-30 days (data + styling)
     - [x] "View Details" button → opens GraphActivity
   - [x] Monthly Goal Progress Card (existing goal data)
   - [x] Quick action buttons (Add Expense, View Analytics)
 - [x] Create `ui/home/DashboardViewModel.kt`:
   - [x] Observe expenses, totalSpent, goals from repositories
-  - [ ] Provide graph data (daily aggregated spending)
-  - [ ] Handle metric configuration (daily/weekly/monthly)
+  - [x] Provide graph data (daily aggregated spending)
+  - [x] Handle metric configuration (daily/weekly/monthly)
 
 ### 3.3 Spending Graph Component
-- [ ] Create `ui/components/SpendingGraphView.kt`:
-  - [ ] Custom View wrapping MPAndroidChart LineChart
-  - [ ] Configurable time range (7/14/30/90 days)
+- [x] Create `ui/components/SpendingGraphView.kt`:
+  - [x] Custom View wrapping MPAndroidChart LineChart
+  - [x] Configurable time range (7/14/30/90 days)
     - [x] Implemented 7/30/90-day presets on Dashboard graph
-  - [ ] Themed colors matching Material3
+  - [x] Themed colors matching Material3
   - [x] Touch interactions, zoom, scroll (configured on Dashboard graph)
   - [x] Data point labels (x-axis day-of-month labels with density control)
 - [ ] Firebase query for aggregated spending data:
   - [x] Daily totals for selected range (implemented in `DashboardViewModel` + `DashboardFragment`)
   - [ ] Category breakdowns (optional)
-  - [ ] Comparison with previous period (optional)
+  - [x] Comparison with previous period (optional)
 
 ### 3.4 Categories & Expenses Tab (Home > Categories)
 - [x] Create `ui/home/CategoriesFragment.kt` (placeholder)
@@ -122,10 +122,10 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 ### 3.5 Enhanced GraphActivity
 - [ ] Update existing `GraphActivity.kt`:
   - [x] Toolbar with back button
-  - [ ] Full-screen spending graph
-  - [ ] Metric selector (daily/weekly/monthly/yearly)
+  - [x] Full-screen spending graph
+  - [x] Metric selector (daily/weekly/monthly/yearly)
   - [x] Date range picker (start/end picker + textual summary)
-  - [ ] Export/share functionality
+  - [x] Export/share functionality
   - [x] Legend for categories (goal limit lines)
 - [x] Update `activity_graph.xml` layout (range summary under start date)
 

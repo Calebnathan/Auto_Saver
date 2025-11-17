@@ -119,11 +119,41 @@
 
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/metric_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_metric_daily"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/metric_daily" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_metric_weekly"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/metric_weekly" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_metric_monthly"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/metric_monthly" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
                 <!-- MPAndroidChart LineChart -->
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/chart_spending"
+                <com.example.auto_saver.ui.components.SpendingGraphView
+                    android:id="@+id/view_spending_graph"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
+                    android:layout_height="220dp"
                     android:layout_marginTop="@dimen/margin_medium" />
 
                 <com.google.android.material.button.MaterialButton

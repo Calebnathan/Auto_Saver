@@ -118,6 +118,23 @@
     <string name="last_90_days">Last 90 Days</string>
     <string name="select_date_range">%1$s to %2$s</string>
     <string name="no_data_available">No data available for selected period</string>
+    <string name="metric_daily">Daily</string>
+    <string name="metric_weekly">Weekly</string>
+    <string name="metric_monthly">Monthly</string>
+    <string name="metric_yearly">Yearly</string>
+    <string name="graph_empty_state">No spending data for this range yet</string>
+    <string name="graph_error_state">Unable to load graph data</string>
+    <string name="graph_goal_limit">Monthly Goal</string>
+    <string name="graph_current_period_label">Current period</string>
+    <string name="graph_previous_period_label">Previous period</string>
+    <string name="graph_no_data_message">Start tracking expenses to see insights here.</string>
+    <string name="graph_comparison_format">This period: %1$s • Previous: %2$s</string>
+    <string name="graph_share_action">Share Snapshot</string>
+    <string name="graph_share_subject">Auto Saver spending snapshot</string>
+    <string name="graph_share_body">My spending from %1$s totaled %2$s (previous period: %3$s).</string>
+    <string name="graph_share_no_data">Nothing to share yet. Add some expenses first.</string>
+    <string name="graph_range_short_format">%1$s → %2$s</string>
+    <string name="graph_loading_message">Loading latest spending insights...</string>
 
     <!-- Dashboard Specific -->
     <string name="no_goals_set">No monthly goals set yet</string>

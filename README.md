@@ -18,6 +18,7 @@ The modern UI/UX overhaul introduces a three-page navigation structure:
 - 💰 **Expense Tracking** - Add, view, and organize expenses by category
 - 📂 **Category Management** - Create custom categories to organize your spending
 - 📊 **Expense Grouping** - Expenses automatically grouped by category with expandable/collapsible views
+- 📈 **Spending Insights** - MPAndroidChart-driven graphs with 7/30/90 day presets, configurable metrics, and a shareable full-screen view
 - 💳 **Spending Summary** - View total spent and expense count at a glance
 - 👤 **User Profile** - Manage your account information
 - 🎨 **Material Design 3** - Modern, beautiful interface
@@ -46,7 +47,8 @@ The modern UI/UX overhaul introduces a three-page navigation structure:
    - Save to start organizing expenses.
 
 4. **View Your Spending**
-   - See total spent and summaries on Home (Dashboard tab work in progress).
+   - See total spent, goal progress, and the interactive spending graph on Home (Dashboard tab).
+   - Tap **View Details** on the graph card to open the full-screen trends view with metric toggles and sharing.
    - Browse the Categories tab to inspect category-level expenses.
 
 ### Menu Options
