@@ -6,6 +6,7 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -16,12 +17,15 @@ import kotlinx.coroutines.launch
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var userPreferences: UserPreferences
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
         userPreferences = UserPreferences(this)
+        auth = FirebaseAuth.getInstance()
+        reconcileSession()
 
         val logoImageView = findViewById<ImageView>(R.id.ivLogo)
 
@@ -46,5 +50,14 @@ class SplashActivity : AppCompatActivity() {
             finish()
         }
     }
-}
 
+    private fun reconcileSession() {
+        val firebaseUser = auth.currentUser
+        val cachedUid = userPreferences.getCurrentUserUid()
+        if (firebaseUser?.uid == null || firebaseUser.uid != cachedUid) {
+            userPreferences.clearSession()
+        } else {
+            userPreferences.setCurrentUserUid(firebaseUser.uid)
+        }
+    }
+}

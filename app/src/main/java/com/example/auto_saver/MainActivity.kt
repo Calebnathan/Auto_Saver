@@ -30,6 +30,7 @@ import com.example.auto_saver.models.ExpenseListItem
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
     private lateinit var groupedExpenseAdapter: GroupedExpenseAdapter
+    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     private val categoryCache = mutableMapOf<Int, String>()
     private val expandedCategories = mutableSetOf<Int>()
@@ -207,6 +209,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.action_logout -> {
                         Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show()
+                        firebaseAuth.signOut()
                         userPrefs.clearSession()
                         val intent = Intent(this, LoginActivity::class.java)
                         intent.flags =
@@ -264,6 +267,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // Clear user preferences
+                firebaseAuth.signOut()
                 userPrefs.clearSession()
 
                 runOnUiThread {
