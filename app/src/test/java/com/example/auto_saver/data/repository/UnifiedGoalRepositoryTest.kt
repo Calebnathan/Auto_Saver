@@ -13,9 +13,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.*
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 
 class UnifiedGoalRepositoryTest {
 
@@ -30,9 +28,9 @@ class UnifiedGoalRepositoryTest {
 
     @Before
     fun setup() {
-        remoteDataSource = mock(GoalRemoteDataSource::class.java)
-        goalDao = mock(GoalDao::class.java)
-        userPreferences = mock(UserPreferences::class.java)
+        remoteDataSource = mock()
+        goalDao = mock()
+        userPreferences = mock()
         
         whenever(userPreferences.getCurrentUserId()).thenReturn(testLegacyUserId)
         
@@ -71,7 +69,7 @@ class UnifiedGoalRepositoryTest {
     @Test
     fun `observeGoals falls back to cache on Firestore error`() = runTest {
         whenever(remoteDataSource.observeGoals(testUid))
-            .thenThrow(RuntimeException("Network error"))
+            .thenReturn(kotlinx.coroutines.flow.flow { throw RuntimeException("Network error") })
 
         val result = repository.observeGoals(testUid).first()
 
