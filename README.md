@@ -10,8 +10,8 @@ Auto Saver is an Android budgeting application designed to help users track thei
 
 The modern UI/UX overhaul introduces a three-page navigation structure:
 - 🏠 **Home** – Personal dashboard for your spending and goals (with Dashboard and Categories tabs)
-- 🏁 **Race** – Competitive budgeting challenges between users (under construction)
-- 🤝 **Social** – Collaborative savings goals with friends and family (under construction)
+- 🏁 **Race** – Competitive budgeting challenges between users
+- 🤝 **Social** – Collaborative savings goals with friends and family
 - 👥 **Friend Network (coming soon)** – Add friends via email, accept invites, and see their progress inside the Social tab
 
 ## ✨ Features
@@ -52,6 +52,67 @@ The modern UI/UX overhaul introduces a three-page navigation structure:
    - See total spent, goal progress, and the interactive spending graph on Home (Dashboard tab).
    - Tap **View Details** on the graph card to open the full-screen trends view with metric toggles and sharing.
    - Browse the Categories tab to inspect category-level expenses.
+### Race Screen 
+
+The Race screen enables competitive/collaborative spending challenges:
+
+Key Features:
+
+• Challenge Lists: Shows active and completed challenges in separate sections
+• Create Challenges: FAB opens bottom sheet to create new challenges with name, budget, and date range
+• Join by Code: Users can join existing challenges using an invite code
+• Challenge Details: Tap any challenge to view detailed info (participants, leaderboard, spending)
+• Status Management: Tracks challenge status (Pending, Active, Completed, Cancelled)
+• Spending Sync: Syncs user expenses to update challenge leaderboards
+• Pull-to-Refresh: Swipe down to reload challenges
+• Session Validation: Requires Firebase Auth login to create/join challenges
+
+Architecture:
+
+•  RaceFragment : UI layer with state-based views (loading, empty, error, success)
+•  RaceViewModel : Manages challenge lifecycle through  UnifiedRaceRepository
+• Uses sealed classes for UI state and events
+• Observes challenges in real-time from Firestore
+• Validates inputs (dates, budgets, names) before creating challenges
+
+Both screens follow MVVM architecture with Firebase Auth as the identity source and Firestore as the cloud data backend.
+The Social screen manages friend connections through Firebase Authentication and Firestore:
+
+Key Features:
+
+• Friend Management: Displays a list of connected friends and pending friend requests in separate RecyclerViews
+• Add Friends: Users can send friend invites by email via a bottom sheet dialog
+• Accept/Decline Requests: Incoming friend requests can be accepted or declined
+• Remove Friends: Users can remove existing friends from their list
+• Real-time Updates: Uses Firestore flows to observe friends and requests in real-time
+• Session Validation: Checks Firebase Auth current user; disables features if not logged in
+• Error Handling: Shows error messages via Snackbars with error coloring
+
+Architecture:
+
+•  SocialFragment : UI layer with RecyclerViews for friends and requests
+•  SocialViewModel : Business logic, validates email format, handles friend operations through  UnifiedFriendRepository
+• State is managed through StateFlow for friends/requests lists and SharedFlow for one-time UI events
+
+### Social Screen 
+
+The Social screen manages friend connections through Firebase Authentication and Firestore:
+
+Through this feature the user has the ability to add friends via email, accept/decline incoming requests, and remove existing friends. The screen displays connected friends and pending requests in separate RecyclerViews, updating in real-time using Firestore flows.
+once the user has added friends they will be able to see their progress inside the Social tab on the Home screen.
+key Features:
+• Friend Management: Displays a list of connected friends and pending friend requests in separate RecyclerViews
+• Add Friends: Users can send friend invites by email via a bottom sheet dialog
+• Accept/Decline Requests: Incoming friend requests can be accepted or declined
+• Remove Friends: Users can remove existing friends from their list
+• Real-time Updates: Uses Firestore flows to observe friends and requests in real-time
+• Session Validation: Checks Firebase Auth current user; disables features if not logged in
+• Error Handling: Shows error messages via Snackbars with error coloring   \
+Architecture:
+•  SocialFragment : UI layer with RecyclerViews for friends and requests
+•  SocialViewModel : Business logic, validates email format, handles friend operations through  Unified
+FriendRepository
+• State is managed through StateFlow for friends/requests lists and SharedFlow for one-time UI events
 
 ### Menu Options
 - ⚙️ **Settings** - Configure app preferences
