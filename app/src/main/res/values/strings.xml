@@ -104,6 +104,26 @@
     <string name="coming_soon">Coming Soon</string>
     <string name="feature_description_race">Compete with friends in budgeting challenges. See who can save more!</string>
     <string name="feature_description_social">Create collaborative savings goals with friends and family.</string>
+    <string name="friend_summary_placeholder">No friends yet</string>
+    <string name="friend_summary_body">Invite friends via email to start collaborating.</string>
+    <string name="friend_summary_connected">Stay synced with your friend network.</string>
+    <string name="add_friend_cta">Add Friend</string>
+    <string name="pending_requests_title">Pending Invitations</string>
+    <string name="pending_requests_empty">No pending requests right now.</string>
+    <string name="friends_list_title">Your Friends</string>
+    <string name="friends_list_empty">You haven\'t accepted any friends yet.</string>
+    <string name="friend_remove">Remove</string>
+    <string name="friend_accept">Accept</string>
+    <string name="friend_decline">Decline</string>
+    <string name="pending_request_message">wants to connect with you.</string>
+    <string name="pending_request_message_from">%1$s wants to connect with you.</string>
+    <string name="friend_avatar_cd">Friend avatar</string>
+    <string name="add_friend_title">Invite a friend</string>
+    <string name="add_friend_subtitle">Enter your friend\'s email address to send an invitation</string>
+    <string name="add_friend_email_hint">friend@email.com</string>
+    <string name="add_friend_helper">We\'ll send them an invite to connect</string>
+    <string name="add_friend_send">Send invite</string>
+    <string name="add_friend_error_empty">Email is required</string>
 
     <!-- Graph Related -->
     <string name="spending_graph">Spending Graph</string>
@@ -150,6 +170,11 @@
     <plurals name="expense_count">
         <item quantity="one">%d expense</item>
         <item quantity="other">%d expenses</item>
+    </plurals>
+
+    <plurals name="friend_count">
+        <item quantity="one">%d friend</item>
+        <item quantity="other">%d friends</item>
     </plurals>
 
 </resources>

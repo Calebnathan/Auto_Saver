@@ -8,9 +8,35 @@ data class UserProfile(
     val uid: String,
     val fullName: String = "",
     val contact: String = "",
+    val contactLowercase: String? = null,
     val profilePhotoPath: String? = null,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
+)
+
+enum class FriendRequestStatus {
+    PENDING,
+    ACCEPTED,
+    DECLINED
+}
+
+data class FriendRequest(
+    val id: String,
+    val fromUid: String,
+    val toUid: String,
+    val fromEmail: String,
+    val toEmail: String,
+    val status: FriendRequestStatus,
+    val createdAt: Long,
+    val updatedAt: Long
+)
+
+data class FriendProfile(
+    val uid: String,
+    val email: String,
+    val displayName: String? = null,
+    val photoUrl: String? = null,
+    val since: Long = 0L
 )
 
 data class CategoryRecord(

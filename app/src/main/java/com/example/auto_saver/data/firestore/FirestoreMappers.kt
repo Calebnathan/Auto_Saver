@@ -2,6 +2,9 @@ package com.example.auto_saver.data.firestore
 
 import com.example.auto_saver.data.model.CategoryRecord
 import com.example.auto_saver.data.model.ExpenseRecord
+import com.example.auto_saver.data.model.FriendProfile
+import com.example.auto_saver.data.model.FriendRequest
+import com.example.auto_saver.data.model.FriendRequestStatus
 import com.example.auto_saver.data.model.GoalRecord
 import com.example.auto_saver.data.model.UserProfile
 import com.google.firebase.Timestamp
@@ -17,6 +20,7 @@ fun DocumentSnapshot.toUserProfile(): UserProfile? {
         uid = id,
         fullName = fullName,
         contact = contact,
+        contactLowercase = getString("contactLowercase"),
         profilePhotoPath = profilePhotoPath,
         createdAt = getTimestamp("createdAt").toEpochMilli(),
         updatedAt = getTimestamp("updatedAt").toEpochMilli()
@@ -75,6 +79,7 @@ fun UserProfile.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
     hashMapOf<String, Any?>(
         "fullName" to fullName,
         "contact" to contact,
+        "contactLowercase" to contact.lowercase(),
         "profilePhotoPath" to profilePhotoPath,
         "updatedAt" to FieldValue.serverTimestamp()
     ).apply {
@@ -112,6 +117,38 @@ fun ExpenseRecord.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
     ).apply {
         if (isNew) put("createdAt", FieldValue.serverTimestamp())
     }
+
+fun DocumentSnapshot.toFriendRequest(): FriendRequest? {
+    if (!exists()) return null
+    val fromUid = getString("fromUid") ?: return null
+    val toUid = getString("toUid") ?: return null
+    val fromEmail = getString("fromEmail") ?: ""
+    val toEmail = getString("toEmail") ?: ""
+    val statusValue = getString("status") ?: FriendRequestStatus.PENDING.name
+    return FriendRequest(
+        id = id,
+        fromUid = fromUid,
+        toUid = toUid,
+        fromEmail = fromEmail,
+        toEmail = toEmail,
+        status = runCatching { FriendRequestStatus.valueOf(statusValue) }.getOrDefault(FriendRequestStatus.PENDING),
+        createdAt = getTimestamp("createdAt").toEpochMilli(),
+        updatedAt = getTimestamp("updatedAt").toEpochMilli()
+    )
+}
+
+fun DocumentSnapshot.toFriendProfile(): FriendProfile? {
+    if (!exists()) return null
+    val friendUid = getString("friendUid") ?: return null
+    val email = getString("friendEmail") ?: ""
+    return FriendProfile(
+        uid = friendUid,
+        email = email,
+        displayName = getString("displayName"),
+        photoUrl = getString("photoUrl"),
+        since = getTimestamp("since").toEpochMilli()
+    )
+}
 
 private fun DocumentSnapshot.getNumber(key: String): Number? = when (val value = get(key)) {
     is Number -> value

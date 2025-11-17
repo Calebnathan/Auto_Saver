@@ -12,6 +12,7 @@ The modern UI/UX overhaul introduces a three-page navigation structure:
 - 🏠 **Home** – Personal dashboard for your spending and goals (with Dashboard and Categories tabs)
 - 🏁 **Race** – Competitive budgeting challenges between users (under construction)
 - 🤝 **Social** – Collaborative savings goals with friends and family (under construction)
+- 👥 **Friend Network (coming soon)** – Add friends via email, accept invites, and see their progress inside the Social tab
 
 ## ✨ Features
 - 🔐 **User Authentication** - Secure login and signup system
@@ -20,6 +21,7 @@ The modern UI/UX overhaul introduces a three-page navigation structure:
 - 📊 **Expense Grouping** - Expenses automatically grouped by category with expandable/collapsible views
 - 📈 **Spending Insights** - MPAndroidChart-driven graphs with 7/30/90 day presets, configurable metrics, and a shareable full-screen view
 - 💳 **Spending Summary** - View total spent and expense count at a glance
+- 👥 **Friend Network** - Invite friends via email, manage pending requests, and stay synced in the Social tab
 - 👤 **User Profile** - Manage your account information
 - 🎨 **Material Design 3** - Modern, beautiful interface
 

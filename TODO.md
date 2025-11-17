@@ -196,6 +196,28 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 ## 📋 Phase 5: Social Screen (Page 3 - Collaborative)
 
 ### 5.1 Firebase Data Models
+- [x] Create `data/model/FriendRequest.kt` and `data/model/FriendProfile.kt`:
+  ```kotlin
+  data class FriendRequest(
+    val id: String,
+    val fromUid: String,
+    val toUid: String,
+    val toEmail: String,
+    val status: FriendRequestStatus,
+    val createdAt: Long,
+    val updatedAt: Long
+  )
+  ```
+  ```kotlin
+  data class FriendProfile(
+    val uid: String,
+    val email: String,
+    val displayName: String?,
+    val photoUrl: String?,
+    val since: Long
+  )
+  ```
+- [x] Extend user models so friend lookups can surface avatar + name in Social tab
 - [ ] Create `data/model/CollaborativeGoal.kt`:
   ```kotlin
   data class CollaborativeGoal(
@@ -221,6 +243,15 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 - [ ] Create `data/model/GoalContribution.kt`
 
 ### 5.2 Firestore Schema
+- [x] Document friend collections inside `users/{uid}`:
+  ```
+  /users/{uid}/friend_requests/{requestId}
+    - fromUid, toUid, toEmail, status, createdAt, updatedAt
+  /users/{uid}/friends/{friendUid}
+    - friendUid, friendEmail, since
+  ```
+- [x] Rules: only owner can read/write their friend data; request sender can write initial request, receiver can accept/decline
+- [x] Add Firestore indexes or email lookup helper (Auth query + cached lowercased email)
 - [ ] Document structure in `firestore.rules`:
   ```
   /collaborative_goals/{goalId}
@@ -233,26 +264,38 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 - [ ] All participants can view goal progress
 
 ### 5.3 Social Remote Data Source
-- [ ] Create `data/firestore/SocialRemoteDataSource.kt`:
+- [x] Create `data/firestore/FriendRemoteDataSource.kt`:
+  - [ ] `sendFriendRequest(targetEmail)` → resolves email to uid, creates request doc under receiver
+  - [ ] `observeFriendRequests(uid)` → stream pending/accepted requests
+  - [ ] `acceptFriendRequest(requestId)` / `declineFriendRequest(requestId)`
+  - [ ] `observeFriends(uid)` → realtime list for Social tab
+- [ ] Create/extend `data/firestore/SocialRemoteDataSource.kt`:
   - [ ] `observeCollaborativeGoals(uid)` - user's shared goals
   - [ ] `createCollaborativeGoal(goal)` - start new group goal
   - [ ] `updateGoalCategory(goalId, category)` - update budget/saved
   - [ ] `addContribution(goalId, contribution)` - log savings
-  - [ ] `inviteParticipant(goalId, email)` - send invite
+  - [ ] `inviteParticipant(goalId, email)` - send invite (re-use friend lookups when available)
 
 ### 5.4 Social Repository
-- [ ] Create `data/repository/UnifiedSocialRepository.kt`:
+- [x] Create `data/repository/UnifiedFriendRepository.kt`:
+  - [ ] Wrap remote source, expose flows for friends + requests
+  - [ ] Cache accepted friends in Room for offline support
+  - [ ] Provide helper APIs for email search and request lifecycle
+- [ ] Create/extend `data/repository/UnifiedSocialRepository.kt`:
   - [ ] Firestore-first pattern
   - [ ] Real-time progress updates
   - [ ] Aggregate contributions per category
   - [ ] Calculate overall progress
+  - [ ] Surface friend list to collaborative goal invites
 
 ### 5.5 Social UI Components
-- [ ] Create `ui/social/SocialFragment.kt` (placeholder initially):
-  - [ ] "Under Construction" message
-  - [ ] Collaborative icon/illustration
-  - [ ] Feature description
-- [ ] Create `fragment_social.xml` layout
+- [x] Replace placeholder `SocialFragment` with friend-first dashboard:
+  - [x] Friend summary card (friend count, quick actions)
+  - [x] Reusable `FriendListAdapter` for accepted friends
+  - [x] Pending invites chip/button showing count
+- [x] Add "Add Friend" CTA (Material bottom sheet with email input, validation, success/empty states)
+- [x] Add friend request handling UI to accept/decline invites
+- [ ] Keep existing collaborative goals placeholder below friend list until Phase 5.6 ready
 
 ### 5.6 Social Implementation (Future)
 - [ ] Active collaborative goals list

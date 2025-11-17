@@ -26,6 +26,9 @@ class MyApplication : Application() {
             
         lateinit var goalRepository: UnifiedGoalRepository
             private set
+
+        lateinit var friendRepository: UnifiedFriendRepository
+            private set
             
         lateinit var userRemoteDataSource: UserRemoteDataSource
             private set
@@ -33,6 +36,7 @@ class MyApplication : Application() {
         private lateinit var categoryRemoteDataSource: CategoryRemoteDataSource
         private lateinit var expenseRemoteDataSource: ExpenseRemoteDataSource
         private lateinit var goalRemoteDataSource: GoalRemoteDataSource
+        private lateinit var friendRemoteDataSource: FriendRemoteDataSource
 
         fun cleanupFirestoreListeners() {
             if (::categoryRemoteDataSource.isInitialized) {
@@ -43,6 +47,9 @@ class MyApplication : Application() {
             }
             if (::goalRemoteDataSource.isInitialized) {
                 (goalRemoteDataSource as? FirestoreGoalRemoteDataSource)?.cleanup()
+            }
+            if (::friendRemoteDataSource.isInitialized) {
+                (friendRemoteDataSource as? FirestoreFriendRemoteDataSource)?.cleanup()
             }
         }
     }
@@ -67,6 +74,7 @@ class MyApplication : Application() {
         categoryRemoteDataSource = FirestoreCategoryRemoteDataSource()
         expenseRemoteDataSource = FirestoreExpenseRemoteDataSource()
         goalRemoteDataSource = FirestoreGoalRemoteDataSource()
+        friendRemoteDataSource = FirestoreFriendRemoteDataSource()
         userRemoteDataSource = FirestoreUserRemoteDataSource()
         
         // Initialize unified repositories
@@ -92,6 +100,8 @@ class MyApplication : Application() {
             categoryRepository = categoryRepository as FirestoreFirstCategoryRepository,
             dispatcher = Dispatchers.IO
         )
+
+        friendRepository = FirestoreFriendRepository(friendRemoteDataSource)
 
         // Apply saved theme preference on app start
         val nightMode = if (userPreferences.isDarkModeEnabled()) {
