@@ -84,9 +84,11 @@
 
         <!-- Full Name Input -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutFullName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Full Name"
+            app:helperTextEnabled="true"
             app:startIconDrawable="@android:drawable/ic_menu_myplaces"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -103,9 +105,11 @@
 
         <!-- Contact Input -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutContact"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Contact Number"
+            app:helperTextEnabled="true"
             app:startIconDrawable="@android:drawable/ic_menu_call"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -122,9 +126,11 @@
 
         <!-- Username Input -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
+            android:hint="Email"
+            app:helperTextEnabled="true"
             app:startIconDrawable="@android:drawable/ic_menu_myplaces"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -141,11 +147,13 @@
 
         <!-- Password Input -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
             app:startIconDrawable="@android:drawable/ic_lock_lock"
             app:endIconMode="password_toggle"
+            app:helperTextEnabled="true"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp">
@@ -159,13 +167,44 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <LinearLayout
+            android:id="@+id/passwordStrengthContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/passwordStrengthIndicator"
+                android:layout_width="0dp"
+                android:layout_height="8dp"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="0"
+                app:trackCornerRadius="8dp"
+                style="@style/Widget.Material3.LinearProgressIndicator" />
+
+            <TextView
+                android:id="@+id/tvPasswordStrength"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Strength"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurfaceVariant"/>
+
+        </LinearLayout>
+
         <!-- Confirm Password Input -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutConfirmPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Confirm Password"
             app:startIconDrawable="@android:drawable/ic_lock_lock"
             app:endIconMode="password_toggle"
+            app:helperTextEnabled="true"
             app:boxStrokeColor="?attr/colorPrimary"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="24dp">
@@ -204,4 +243,3 @@
     </LinearLayout>
 
 </ScrollView>
-

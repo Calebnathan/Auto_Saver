@@ -33,6 +33,13 @@
     <color name="warning_yellow">#FFC107</color>
     <color name="error_red">#F44336</color>
 
+    <!-- Password Strength -->
+    <color name="password_strength_base">#9E9E9E</color>
+    <color name="password_strength_weak">@color/error_red</color>
+    <color name="password_strength_medium">@color/warning_yellow</color>
+    <color name="password_strength_good">@color/success_green</color>
+    <color name="password_strength_strong">#6200EE</color>
+
     <!-- Goal Progress Colors -->
     <color name="goal_safe">#4CAF50</color>
     <color name="goal_success">#4CAF50</color>

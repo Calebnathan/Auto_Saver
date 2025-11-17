@@ -5,10 +5,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Patterns
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.auto_saver.data.firestore.FirestoreResult
 import com.example.auto_saver.data.firestore.FirestoreUserRemoteDataSource
@@ -16,7 +19,9 @@ import com.example.auto_saver.data.firestore.UserRemoteDataSource
 import com.example.auto_saver.data.model.UserProfile
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
@@ -33,6 +38,14 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var editConfirmPassword: TextInputEditText
     private lateinit var btnSignUp: MaterialButton
     private lateinit var btnBackToLogin: MaterialButton
+
+    private lateinit var layoutFullName: TextInputLayout
+    private lateinit var layoutContact: TextInputLayout
+    private lateinit var layoutEmail: TextInputLayout
+    private lateinit var layoutPassword: TextInputLayout
+    private lateinit var layoutConfirmPassword: TextInputLayout
+    private lateinit var passwordStrengthIndicator: LinearProgressIndicator
+    private lateinit var tvPasswordStrength: TextView
 
     private lateinit var userPreferences: UserPreferences
     private lateinit var database: AppDatabase
@@ -71,6 +84,7 @@ class SignUpActivity : AppCompatActivity() {
         initializeViews()
         setupPhotoButtons()
         setupButtons()
+        setupValidationWatchers()
     }
 
     private fun initializeViews() {
@@ -84,6 +98,14 @@ class SignUpActivity : AppCompatActivity() {
         editConfirmPassword = findViewById(R.id.editConfirmPassword)
         btnSignUp = findViewById(R.id.btnSignUp)
         btnBackToLogin = findViewById(R.id.btnBackToLogin)
+        layoutFullName = findViewById(R.id.layoutFullName)
+        layoutContact = findViewById(R.id.layoutContact)
+        layoutEmail = findViewById(R.id.layoutEmail)
+        layoutPassword = findViewById(R.id.layoutPassword)
+        layoutConfirmPassword = findViewById(R.id.layoutConfirmPassword)
+        passwordStrengthIndicator = findViewById(R.id.passwordStrengthIndicator)
+        tvPasswordStrength = findViewById(R.id.tvPasswordStrength)
+        btnSignUp.isEnabled = false
     }
 
     private fun setupPhotoButtons() {
@@ -112,6 +134,31 @@ class SignUpActivity : AppCompatActivity() {
         btnBackToLogin.setOnClickListener { finish() }
     }
 
+    private fun setupValidationWatchers() {
+        editFullName.doAfterTextChanged {
+            validateFullName()
+            updateSignUpButtonState()
+        }
+        editContact.doAfterTextChanged {
+            validateContact()
+            updateSignUpButtonState()
+        }
+        editEmail.doAfterTextChanged {
+            validateEmailInput()
+            updateSignUpButtonState()
+        }
+        editPassword.doAfterTextChanged {
+            validatePassword()
+            validateConfirmPassword()
+            updateSignUpButtonState()
+        }
+        editConfirmPassword.doAfterTextChanged {
+            validateConfirmPassword()
+            updateSignUpButtonState()
+        }
+        updatePasswordStrengthUI("")
+    }
+
     private fun signUp() {
         val fullName = editFullName.text.toString().trim()
         val contact = editContact.text.toString().trim()
@@ -119,39 +166,16 @@ class SignUpActivity : AppCompatActivity() {
         val password = editPassword.text.toString().trim()
         val confirmPassword = editConfirmPassword.text.toString().trim()
 
-        if (fullName.isEmpty()) {
-            editFullName.error = "Full name is required"
-            editFullName.requestFocus()
-            return
-        }
+        val isValid = listOf(
+            validateFullName(),
+            validateContact(),
+            validateEmailInput(),
+            validatePassword(),
+            validateConfirmPassword()
+        ).all { it }
 
-        if (contact.isEmpty()) {
-            editContact.error = "Contact is required"
-            editContact.requestFocus()
-            return
-        }
-
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            editEmail.error = "Valid email is required"
-            editEmail.requestFocus()
-            return
-        }
-
-        if (password.isEmpty()) {
-            editPassword.error = "Password is required"
-            editPassword.requestFocus()
-            return
-        }
-
-        if (password.length < 6) {
-            editPassword.error = "Password must be at least 6 characters"
-            editPassword.requestFocus()
-            return
-        }
-
-        if (password != confirmPassword) {
-            editConfirmPassword.error = "Passwords do not match"
-            editConfirmPassword.requestFocus()
+        if (!isValid) {
+            Toast.makeText(this, "Please resolve the highlighted fields.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -234,6 +258,153 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun setLoading(isLoading: Boolean) {
-        btnSignUp.isEnabled = !isLoading
+        if (isLoading) {
+            btnSignUp.isEnabled = false
+        } else {
+            updateSignUpButtonState()
+        }
     }
+
+    private fun validateFullName(): Boolean {
+        val fullName = editFullName.text?.toString()?.trim().orEmpty()
+        return when {
+            fullName.isEmpty() -> {
+                layoutFullName.showError("Full name is required")
+                false
+            }
+            fullName.split("\\s+".toRegex()).size < 2 -> {
+                layoutFullName.showError("Include at least first and last name")
+                false
+            }
+            else -> {
+                layoutFullName.showSuccess("Hi ${fullName.substringBefore(" ")} 👋")
+                true
+            }
+        }
+    }
+
+    private fun validateContact(): Boolean {
+        val contact = editContact.text?.toString()?.trim().orEmpty()
+        val normalized = contact.replace("[^0-9+]".toRegex(), "")
+        return when {
+            normalized.isEmpty() -> {
+                layoutContact.showError("Contact number is required")
+                false
+            }
+            !normalized.matches(Regex("^\\+?\\d{7,15}$")) -> {
+                layoutContact.showError("Use 7-15 digits (country code optional)")
+                false
+            }
+            else -> {
+                layoutContact.showSuccess("We'll only use this for security alerts")
+                true
+            }
+        }
+    }
+
+    private fun validateEmailInput(): Boolean {
+        val email = editEmail.text?.toString()?.trim().orEmpty()
+        return when {
+            email.isEmpty() -> {
+                layoutEmail.showError("Email is required")
+                false
+            }
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                layoutEmail.showError("Please enter a valid email")
+                false
+            }
+            else -> {
+                layoutEmail.showSuccess("Looks great!")
+                true
+            }
+        }
+    }
+
+    private fun validatePassword(): Boolean {
+        val password = editPassword.text?.toString().orEmpty()
+        updatePasswordStrengthUI(password)
+
+        if (password.isEmpty()) {
+            layoutPassword.showError("Password is required")
+            return false
+        }
+
+        val score = passwordScore(password)
+        return if (score < 3) {
+            layoutPassword.showError("Mix letters, numbers & symbols for strength")
+            false
+        } else {
+            layoutPassword.showSuccess("Password strength is solid")
+            true
+        }
+    }
+
+    private fun validateConfirmPassword(): Boolean {
+        val password = editPassword.text?.toString().orEmpty()
+        val confirm = editConfirmPassword.text?.toString().orEmpty()
+        return when {
+            confirm.isEmpty() -> {
+                layoutConfirmPassword.showError("Please confirm your password")
+                false
+            }
+            confirm != password -> {
+                layoutConfirmPassword.showError("Passwords do not match")
+                false
+            }
+            else -> {
+                layoutConfirmPassword.showSuccess("Passwords match ✔")
+                true
+            }
+        }
+    }
+
+    private fun updatePasswordStrengthUI(password: String) {
+        val score = passwordScore(password)
+        val strength = when (score) {
+            0 -> PasswordStrengthInfo("Add a password", R.color.password_strength_base, 0)
+            1 -> PasswordStrengthInfo("Too weak", R.color.password_strength_weak, 25)
+            2 -> PasswordStrengthInfo("Getting there", R.color.password_strength_medium, 50)
+            3 -> PasswordStrengthInfo("Strong", R.color.password_strength_good, 75)
+            else -> PasswordStrengthInfo("Vault grade", R.color.password_strength_strong, 100)
+        }
+        val color = ContextCompat.getColor(this, strength.colorRes)
+        passwordStrengthIndicator.setIndicatorColor(color)
+        passwordStrengthIndicator.progress = strength.progress
+        tvPasswordStrength.text = strength.label
+        tvPasswordStrength.setTextColor(color)
+    }
+
+    private fun passwordScore(password: String): Int {
+        if (password.isEmpty()) return 0
+        var score = 0
+        if (password.length >= 8) score++
+        if (password.any(Char::isLowerCase) && password.any(Char::isUpperCase)) score++
+        if (password.any(Char::isDigit)) score++
+        if (password.any { !it.isLetterOrDigit() }) score++
+        return score
+    }
+
+    private fun TextInputLayout.showError(message: String) {
+        error = message
+        helperText = null
+    }
+
+    private fun TextInputLayout.showSuccess(message: String) {
+        error = null
+        helperText = message
+    }
+
+    private fun updateSignUpButtonState() {
+        btnSignUp.isEnabled = editFullName.text?.isNotBlank() == true &&
+            editContact.text?.isNotBlank() == true &&
+            editEmail.text?.isNotBlank() == true &&
+            editPassword.text?.isNotBlank() == true &&
+            editConfirmPassword.text?.isNotBlank() == true
+    }
+
+    private data class PasswordStrengthInfo(
+        val label: String,
+        val colorRes: Int,
+        val progress: Int
+    )
 }
