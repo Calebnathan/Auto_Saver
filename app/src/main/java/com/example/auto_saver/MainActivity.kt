@@ -411,11 +411,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Observe categories for caching
+        // Observe categories for caching and UI updates
         lifecycleScope.launch {
             viewModel.categories.collectLatest { categories ->
                 categoryCache.clear()
                 categories.forEach { categoryCache[it.id] = it }
+                updateExpenseList()
             }
         }
 
