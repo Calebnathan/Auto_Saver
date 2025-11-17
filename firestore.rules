@@ -65,12 +65,12 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         
         allow create: if isOwner(userId)
-                      && hasRequiredFields(['name', 'createdAt', 'updatedAt'])
+                      && hasRequiredFields(['name'])
                       && isValidString('name', 1, 100)
                       && request.resource.data.keys().hasOnly(['name', 'createdAt', 'updatedAt']);
         
         allow update: if isOwner(userId)
-                      && hasRequiredFields(['name', 'updatedAt'])
+                      && hasRequiredFields(['name'])
                       && isValidString('name', 1, 100)
                       && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
         
@@ -82,7 +82,7 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         
         allow create: if isOwner(userId)
-                      && hasRequiredFields(['month', 'minGoal', 'maxGoal', 'createdAt', 'updatedAt'])
+                      && hasRequiredFields(['month', 'minGoal', 'maxGoal'])
                       && isValidString('month', 7, 7)
                       && request.resource.data.month.matches('^\\d{4}-\\d{2}$')
                       && goalId == request.resource.data.month
@@ -92,7 +92,7 @@ service cloud.firestore {
                       && request.resource.data.keys().hasOnly(['month', 'minGoal', 'maxGoal', 'createdAt', 'updatedAt']);
         
         allow update: if isOwner(userId)
-                      && hasRequiredFields(['month', 'minGoal', 'maxGoal', 'updatedAt'])
+                      && hasRequiredFields(['month', 'minGoal', 'maxGoal'])
                       && goalId == request.resource.data.month
                       && isValidNumber('minGoal', 0)
                       && isValidNumber('maxGoal', 0)
@@ -107,7 +107,7 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         
         allow create: if isOwner(userId)
-                      && hasRequiredFields(['categoryId', 'date', 'amount', 'createdAt', 'updatedAt'])
+                      && hasRequiredFields(['categoryId', 'date', 'amount'])
                       && isValidString('categoryId', 1, 100)
                       && isValidString('date', 10, 10)
                       && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
@@ -115,7 +115,7 @@ service cloud.firestore {
                       && request.resource.data.keys().hasOnly(['categoryId', 'date', 'amount', 'description', 'startTime', 'endTime', 'photoPath', 'createdAt', 'updatedAt']);
         
         allow update: if isOwner(userId)
-                      && hasRequiredFields(['categoryId', 'date', 'amount', 'updatedAt'])
+                      && hasRequiredFields(['categoryId', 'date', 'amount'])
                       && isValidString('categoryId', 1, 100)
                       && isValidString('date', 10, 10)
                       && isValidNumber('amount', 0.01)
