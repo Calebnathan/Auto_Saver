@@ -95,6 +95,12 @@
 
         <activity android:name=".GraphActivity" />
 
+        <!-- Challenge Detail Screen -->
+        <activity
+            android:name=".ui.race.ChallengeDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
     </application>
 
 </manifest>
