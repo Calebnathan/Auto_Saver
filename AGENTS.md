@@ -6,7 +6,7 @@ This file applies to the entire repo.
 
 - Android app: `com.example.auto_saver`
 - Local DB: Room (`AppDatabase`) currently used for users, categories, expenses, goals.
-- Cloud backend: Firebase (Auth + Firestore + Storage). See `CLOUD.md` for the canonical cloud model.
+- Cloud: Using Firestore with email + password authentication.
 
 ## Cloud Architecture (must read)
 

@@ -86,32 +86,27 @@ class FirestoreFirstExpenseRepository(
     }
 
     override suspend fun createExpense(uid: String, expense: ExpenseRecord, photoUri: Uri?): Result<String> = withContext(dispatcher) {
-        when (val result = remoteDataSource.upsertExpense(uid, expense)) {
+        val expenseId = if (expense.id.isBlank()) {
+            java.util.UUID.randomUUID().toString()
+        } else {
+            expense.id
+        }
+        
+        val photoPath = if (photoUri != null) {
+            savePhotoLocally(uid, expenseId, photoUri)
+        } else {
+            null
+        }
+        
+        val finalExpense = expense.copy(
+            id = expenseId,
+            photoPath = photoPath,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
+        
+        when (val result = remoteDataSource.upsertExpense(uid, finalExpense)) {
             is FirestoreResult.Success -> {
-                val expenseId = result.data
-                var photoPath: String? = null
-                
-                if (photoUri != null) {
-                    photoPath = savePhotoLocally(uid, expenseId, photoUri)
-                }
-                
-                val finalExpense = if (photoPath != null) {
-                    val updatedExpense = expense.copy(
-                        id = expenseId,
-                        photoPath = photoPath,
-                        createdAt = System.currentTimeMillis(),
-                        updatedAt = System.currentTimeMillis()
-                    )
-                    remoteDataSource.upsertExpense(uid, updatedExpense)
-                    updatedExpense
-                } else {
-                    expense.copy(
-                        id = expenseId,
-                        createdAt = System.currentTimeMillis(),
-                        updatedAt = System.currentTimeMillis()
-                    )
-                }
-                
                 cacheExpense(finalExpense)
                 Result.success(expenseId)
             }

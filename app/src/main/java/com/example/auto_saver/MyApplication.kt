@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.example.auto_saver.data.firestore.*
 import com.example.auto_saver.data.repository.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import kotlinx.coroutines.Dispatchers
 
 class MyApplication : Application() {
@@ -27,10 +29,33 @@ class MyApplication : Application() {
             
         lateinit var userRemoteDataSource: UserRemoteDataSource
             private set
+
+        private lateinit var categoryRemoteDataSource: CategoryRemoteDataSource
+        private lateinit var expenseRemoteDataSource: ExpenseRemoteDataSource
+        private lateinit var goalRemoteDataSource: GoalRemoteDataSource
+
+        fun cleanupFirestoreListeners() {
+            if (::categoryRemoteDataSource.isInitialized) {
+                (categoryRemoteDataSource as? FirestoreCategoryRemoteDataSource)?.cleanup()
+            }
+            if (::expenseRemoteDataSource.isInitialized) {
+                (expenseRemoteDataSource as? FirestoreExpenseRemoteDataSource)?.cleanup()
+            }
+            if (::goalRemoteDataSource.isInitialized) {
+                (goalRemoteDataSource as? FirestoreGoalRemoteDataSource)?.cleanup()
+            }
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Enable Firestore offline persistence
+        val firestoreSettings = FirebaseFirestoreSettings.Builder()
+            .setPersistenceEnabled(true)
+            .setCacheSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
+            .build()
+        FirebaseFirestore.getInstance().firestoreSettings = firestoreSettings
         
         // Initialize Room database once for the entire app
         database = AppDatabase.getDatabase(this)
@@ -39,9 +64,9 @@ class MyApplication : Application() {
         userPreferences = UserPreferences(this, FirebaseAuth.getInstance())
         
         // Initialize remote data sources
-        val categoryRemoteDataSource: CategoryRemoteDataSource = FirestoreCategoryRemoteDataSource()
-        val expenseRemoteDataSource: ExpenseRemoteDataSource = FirestoreExpenseRemoteDataSource()
-        val goalRemoteDataSource: GoalRemoteDataSource = FirestoreGoalRemoteDataSource()
+        categoryRemoteDataSource = FirestoreCategoryRemoteDataSource()
+        expenseRemoteDataSource = FirestoreExpenseRemoteDataSource()
+        goalRemoteDataSource = FirestoreGoalRemoteDataSource()
         userRemoteDataSource = FirestoreUserRemoteDataSource()
         
         // Initialize unified repositories

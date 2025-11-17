@@ -109,7 +109,11 @@ class FirestoreFirstGoalRepository(
     }
 
     private suspend fun getCachedGoals(uid: String): List<GoalRecord> {
-        return emptyList()
+        val legacyUserId = userPreferences.getCurrentUserId()
+        if (legacyUserId == -1) return emptyList()
+
+        return goalDao.getGoalsByUser(legacyUserId)
+            .map { it.toCloudRecord(uid) }
     }
     
     fun clearCache() {

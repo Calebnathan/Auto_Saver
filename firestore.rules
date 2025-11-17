@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string
+             && request.resource.data[field].size() >= minLen
+             && request.resource.data[field].size() <= maxLen;
+    }
+    
+    function isValidNumber(field, min) {
+      return request.resource.data[field] is number
+             && request.resource.data[field] >= min;
+    }
+    
+    // User profile document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      
+      allow create: if isOwner(userId)
+                    && hasRequiredFields(['fullName', 'contact'])
+                    && isValidString('fullName', 1, 200)
+                    && isValidString('contact', 7, 20)
+                    && request.resource.data.keys().hasOnly(['fullName', 'contact', 'profilePhotoPath', 'createdAt', 'updatedAt']);
+      
+      allow update: if isOwner(userId)
+                    && hasRequiredFields(['fullName', 'contact'])
+                    && isValidString('fullName', 1, 200)
+                    && isValidString('contact', 7, 20)
+                    && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+      
+      // Categories subcollection
+      match /categories/{categoryId} {
+        allow read: if isOwner(userId);
+        
+        allow create: if isOwner(userId)
+                      && hasRequiredFields(['name', 'createdAt', 'updatedAt'])
+                      && isValidString('name', 1, 100)
+                      && request.resource.data.keys().hasOnly(['name', 'createdAt', 'updatedAt']);
+        
+        allow update: if isOwner(userId)
+                      && hasRequiredFields(['name', 'updatedAt'])
+                      && isValidString('name', 1, 100)
+                      && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+        
+        allow delete: if isOwner(userId);
+      }
+      
+      // Goals subcollection
+      match /goals/{goalId} {
+        allow read: if isOwner(userId);
+        
+        allow create: if isOwner(userId)
+                      && hasRequiredFields(['month', 'minGoal', 'maxGoal', 'createdAt', 'updatedAt'])
+                      && isValidString('month', 7, 7)
+                      && request.resource.data.month.matches('^\\d{4}-\\d{2}$')
+                      && goalId == request.resource.data.month
+                      && isValidNumber('minGoal', 0)
+                      && isValidNumber('maxGoal', 0)
+                      && request.resource.data.maxGoal >= request.resource.data.minGoal
+                      && request.resource.data.keys().hasOnly(['month', 'minGoal', 'maxGoal', 'createdAt', 'updatedAt']);
+        
+        allow update: if isOwner(userId)
+                      && hasRequiredFields(['month', 'minGoal', 'maxGoal', 'updatedAt'])
+                      && goalId == request.resource.data.month
+                      && isValidNumber('minGoal', 0)
+                      && isValidNumber('maxGoal', 0)
+                      && request.resource.data.maxGoal >= request.resource.data.minGoal
+                      && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+        
+        allow delete: if isOwner(userId);
+      }
+      
+      // Expenses subcollection
+      match /expenses/{expenseId} {
+        allow read: if isOwner(userId);
+        
+        allow create: if isOwner(userId)
+                      && hasRequiredFields(['categoryId', 'date', 'amount', 'createdAt', 'updatedAt'])
+                      && isValidString('categoryId', 1, 100)
+                      && isValidString('date', 10, 10)
+                      && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+                      && isValidNumber('amount', 0.01)
+                      && request.resource.data.keys().hasOnly(['categoryId', 'date', 'amount', 'description', 'startTime', 'endTime', 'photoPath', 'createdAt', 'updatedAt']);
+        
+        allow update: if isOwner(userId)
+                      && hasRequiredFields(['categoryId', 'date', 'amount', 'updatedAt'])
+                      && isValidString('categoryId', 1, 100)
+                      && isValidString('date', 10, 10)
+                      && isValidNumber('amount', 0.01)
+                      && (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+        
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

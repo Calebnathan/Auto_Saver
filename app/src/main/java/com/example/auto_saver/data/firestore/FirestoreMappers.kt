@@ -118,4 +118,4 @@ private fun DocumentSnapshot.getNumber(key: String): Number? = when (val value =
     else -> null
 }
 
-private fun Timestamp?.toEpochMilli(): Long = this?.toDate()?.time ?: 0L
+private fun Timestamp?.toEpochMilli(): Long = this?.toDate()?.time ?: System.currentTimeMillis()

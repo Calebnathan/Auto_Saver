@@ -231,11 +231,15 @@ class MainActivity : AppCompatActivity() {
     private fun performLogout() {
         Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show()
         
-        // Clear repository caches
+        // Clear repository caches and cleanup Firestore listeners
         lifecycleScope.launch(Dispatchers.IO) {
+            // Clear repository caches
             (MyApplication.categoryRepository as? com.example.auto_saver.data.repository.FirestoreFirstCategoryRepository)?.clearCache()
             (MyApplication.expenseRepository as? com.example.auto_saver.data.repository.FirestoreFirstExpenseRepository)?.clearCache()
             (MyApplication.goalRepository as? com.example.auto_saver.data.repository.FirestoreFirstGoalRepository)?.clearCache()
+            
+            // Cleanup Firestore listeners to prevent memory leaks
+            MyApplication.cleanupFirestoreListeners()
         }
         
         // Sign out from Firebase

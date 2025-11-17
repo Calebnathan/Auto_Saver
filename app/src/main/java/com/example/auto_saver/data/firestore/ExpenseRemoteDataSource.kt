@@ -17,12 +17,15 @@ interface ExpenseRemoteDataSource {
     fun observeExpenses(uid: String): Flow<List<ExpenseRecord>>
     suspend fun upsertExpense(uid: String, expense: ExpenseRecord): FirestoreResult<String>
     suspend fun deleteExpense(uid: String, expenseId: String): FirestoreResult<Unit>
+    fun cleanup()
 }
 
 class FirestoreExpenseRemoteDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ExpenseRemoteDataSource {
+
+    private val activeListeners = mutableListOf<ListenerRegistration>()
 
     override fun observeExpenses(uid: String): Flow<List<ExpenseRecord>> = callbackFlow {
         val registration: ListenerRegistration = firestore.collection("users")
@@ -41,7 +44,16 @@ class FirestoreExpenseRemoteDataSource(
                 trySend(expenses).isSuccess
             }
 
-        awaitClose { registration.remove() }
+        synchronized(activeListeners) {
+            activeListeners.add(registration)
+        }
+
+        awaitClose {
+            registration.remove()
+            synchronized(activeListeners) {
+                activeListeners.remove(registration)
+            }
+        }
     }
 
     override suspend fun upsertExpense(
@@ -71,6 +83,13 @@ class FirestoreExpenseRemoteDataSource(
                 .delete()
                 .await()
             Unit
+        }
+    }
+
+    override fun cleanup() {
+        synchronized(activeListeners) {
+            activeListeners.forEach { it.remove() }
+            activeListeners.clear()
         }
     }
 }

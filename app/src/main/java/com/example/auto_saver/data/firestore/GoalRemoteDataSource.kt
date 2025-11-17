@@ -17,12 +17,15 @@ interface GoalRemoteDataSource {
     fun observeGoals(uid: String): Flow<List<GoalRecord>>
     suspend fun upsertGoal(uid: String, goal: GoalRecord): FirestoreResult<String>
     suspend fun deleteGoal(uid: String, goalId: String): FirestoreResult<Unit>
+    fun cleanup()
 }
 
 class FirestoreGoalRemoteDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : GoalRemoteDataSource {
+
+    private val activeListeners = mutableListOf<ListenerRegistration>()
 
     override fun observeGoals(uid: String): Flow<List<GoalRecord>> = callbackFlow {
         val registration: ListenerRegistration = firestore.collection("users")
@@ -41,7 +44,16 @@ class FirestoreGoalRemoteDataSource(
                 trySend(goals).isSuccess
             }
 
-        awaitClose { registration.remove() }
+        synchronized(activeListeners) {
+            activeListeners.add(registration)
+        }
+
+        awaitClose {
+            registration.remove()
+            synchronized(activeListeners) {
+                activeListeners.remove(registration)
+            }
+        }
     }
 
     override suspend fun upsertGoal(uid: String, goal: GoalRecord): FirestoreResult<String> =
@@ -69,4 +81,11 @@ class FirestoreGoalRemoteDataSource(
                 Unit
             }
         }
+
+    override fun cleanup() {
+        synchronized(activeListeners) {
+            activeListeners.forEach { it.remove() }
+            activeListeners.clear()
+        }
+    }
 }

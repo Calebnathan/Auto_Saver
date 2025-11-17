@@ -18,12 +18,15 @@ interface CategoryRemoteDataSource {
     suspend fun upsertCategory(uid: String, category: CategoryRecord): FirestoreResult<String>
     suspend fun deleteCategory(uid: String, categoryId: String): FirestoreResult<Unit>
     suspend fun getCategoryByName(uid: String, name: String): FirestoreResult<CategoryRecord?>
+    fun cleanup()
 }
 
 class FirestoreCategoryRemoteDataSource(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CategoryRemoteDataSource {
+
+    private val activeListeners = mutableListOf<ListenerRegistration>()
 
     override fun observeCategories(uid: String): Flow<List<CategoryRecord>> = callbackFlow {
         val registration: ListenerRegistration = firestore.collection("users")
@@ -42,7 +45,16 @@ class FirestoreCategoryRemoteDataSource(
                 trySend(categories).isSuccess
             }
 
-        awaitClose { registration.remove() }
+        synchronized(activeListeners) {
+            activeListeners.add(registration)
+        }
+
+        awaitClose {
+            registration.remove()
+            synchronized(activeListeners) {
+                activeListeners.remove(registration)
+            }
+        }
     }
 
     override suspend fun upsertCategory(
@@ -84,12 +96,19 @@ class FirestoreCategoryRemoteDataSource(
             val snapshot = firestore.collection("users")
                 .document(uid)
                 .collection("categories")
+                .whereEqualTo("name", name)
+                .limit(1)
                 .get()
                 .await()
 
-            snapshot.documents
-                .mapNotNull { it.toCategoryRecord(uid) }
-                .find { it.name.equals(name, ignoreCase = true) }
+            snapshot.documents.firstOrNull()?.toCategoryRecord(uid)
+        }
+    }
+
+    override fun cleanup() {
+        synchronized(activeListeners) {
+            activeListeners.forEach { it.remove() }
+            activeListeners.clear()
         }
     }
 }
