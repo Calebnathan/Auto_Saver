@@ -85,10 +85,15 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
     }
 
     private fun showPeriodOptions() {
-        val options = arrayOf("This Month", "Last Month", "This Year", "Custom Range")
+        val options = arrayOf(
+            getString(R.string.this_month),
+            getString(R.string.last_month),
+            getString(R.string.this_year),
+            getString(R.string.custom_range)
+        )
 
         AlertDialog.Builder(this)
-            .setTitle("Select Period")
+            .setTitle(R.string.select_period)
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> setThisMonth()
@@ -108,7 +113,7 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
         endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
 
-        btnSelectPeriod.text = "This Month"
+        btnSelectPeriod.text = getString(R.string.this_month)
         updateDateRangeDisplay()
         loadAnalytics()
     }
@@ -122,7 +127,7 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
         endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
 
-        btnSelectPeriod.text = "Last Month"
+        btnSelectPeriod.text = getString(R.string.last_month)
         updateDateRangeDisplay()
         loadAnalytics()
     }
@@ -137,7 +142,7 @@ class CategoryAnalyticsActivity : AppCompatActivity() {
         calendar.set(Calendar.DAY_OF_MONTH, 31)
         endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
 
-        btnSelectPeriod.text = "This Year"
+        btnSelectPeriod.text = getString(R.string.this_year)
         updateDateRangeDisplay()
         loadAnalytics()
     }

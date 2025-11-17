@@ -83,16 +83,16 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 - [x] Create `fragment_home.xml` layout with TabLayout + ViewPager2
 
 ### 3.2 Dashboard Tab (Home > Dashboard)
-- [x] Create `ui/home/DashboardFragment.kt` (placeholder)
-- [x] Create `fragment_dashboard.xml` layout (placeholder):
-  - [ ] Summary Card (total spent, expense count)
-  - [ ] **NEW: Spending Graph Card** (compact view)
-    - [ ] Mini line chart showing last 7-30 days
-    - [ ] "View Details" button → opens GraphActivity
-  - [ ] Monthly Goal Progress Card (existing)
-  - [ ] Quick action buttons (Add Expense, View Analytics)
-- [ ] Create `ui/home/DashboardViewModel.kt`:
-  - [ ] Observe expenses, totalSpent, goals from repositories
+- [x] Create `ui/home/DashboardFragment.kt`
+- [x] Create `fragment_dashboard.xml` layout:
+  - [x] Summary Card (total spent, expense count)
+  - [x] **NEW: Spending Graph Card** (compact view) with LineChart placeholder
+    - [ ] Mini line chart showing last 7-30 days (data + styling)
+    - [x] "View Details" button → opens GraphActivity
+  - [x] Monthly Goal Progress Card (existing goal data)
+  - [x] Quick action buttons (Add Expense, View Analytics)
+- [x] Create `ui/home/DashboardViewModel.kt`:
+  - [x] Observe expenses, totalSpent, goals from repositories
   - [ ] Provide graph data (daily aggregated spending)
   - [ ] Handle metric configuration (daily/weekly/monthly)
 
@@ -100,11 +100,12 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 - [ ] Create `ui/components/SpendingGraphView.kt`:
   - [ ] Custom View wrapping MPAndroidChart LineChart
   - [ ] Configurable time range (7/14/30/90 days)
+    - [x] Implemented 7/30/90-day presets on Dashboard graph
   - [ ] Themed colors matching Material3
-  - [ ] Touch interactions, zoom, scroll
-  - [ ] Data point labels
+  - [x] Touch interactions, zoom, scroll (configured on Dashboard graph)
+  - [x] Data point labels (x-axis day-of-month labels with density control)
 - [ ] Firebase query for aggregated spending data:
-  - [ ] Daily totals for selected range
+  - [x] Daily totals for selected range (implemented in `DashboardViewModel` + `DashboardFragment`)
   - [ ] Category breakdowns (optional)
   - [ ] Comparison with previous period (optional)
 
@@ -120,13 +121,13 @@ Transform Auto Saver into a modern, 3-page navigation app with:
 
 ### 3.5 Enhanced GraphActivity
 - [ ] Update existing `GraphActivity.kt`:
-  - [ ] Toolbar with back button
+  - [x] Toolbar with back button
   - [ ] Full-screen spending graph
   - [ ] Metric selector (daily/weekly/monthly/yearly)
-  - [ ] Date range picker
+  - [x] Date range picker (start/end picker + textual summary)
   - [ ] Export/share functionality
-  - [ ] Legend for categories
-- [ ] Update `activity_graph.xml` layout
+  - [x] Legend for categories (goal limit lines)
+- [x] Update `activity_graph.xml` layout (range summary under start date)
 
 ---
 

@@ -35,8 +35,8 @@ The modern UI/UX overhaul introduces a three-page navigation structure:
    - On the Home screen, use the tabs to switch between the **Dashboard** and **Categories** views (early-stage placeholders for upcoming features).
 
 2. **Track Expenses** 
-   - From Home, open the Categories view (or legacy flows as they are migrated).
-   - Tap the ➕ button in the Total Spent card or relevant action.
+   - From Home, open the Categories view (or use the \"Quick Add\" action on the Dashboard once fully wired).
+   - Tap the ➕ button in the Total Spent or relevant action area.
    - Enter amount, description, category, and date.
    - Save to see it appear under the category.
 

@@ -42,6 +42,9 @@
     <string name="this_week">This Week</string>
     <string name="last_30_days">Last 30 Days</string>
     <string name="custom_range">Custom Range</string>
+    <string name="last_month">Last Month</string>
+    <string name="this_year">This Year</string>
+    <string name="select_period">Select Period</string>
 
     <!-- Menu Items -->
     <string name="menu">Menu</string>
@@ -103,6 +106,7 @@
 
     <!-- Graph Related -->
     <string name="spending_graph">Spending Graph</string>
+    <string name="spending_overview_title">Spending Overview</string>
     <string name="view_details">View Details</string>
     <string name="daily">Daily</string>
     <string name="weekly">Weekly</string>
@@ -111,7 +115,23 @@
     <string name="last_7_days">Last 7 Days</string>
     <string name="last_14_days">Last 14 Days</string>
     <string name="last_90_days">Last 90 Days</string>
-    <string name="select_date_range">Select Date Range</string>
+    <string name="select_date_range">%1$s to %2$s</string>
     <string name="no_data_available">No data available for selected period</string>
+
+    <!-- Dashboard Specific -->
+    <string name="no_goals_set">No monthly goals set yet</string>
+    <string name="quick_actions">Quick Actions</string>
+    <string name="manage_goals">Manage Goals</string>
+    <string name="view_analytics">View Analytics</string>
+    <string name="spending_graph_subtitle">Total daily spending over the selected range</string>
+
+    <string name="range_7_days">7D</string>
+    <string name="range_30_days">30D</string>
+    <string name="range_90_days">90D</string>
+
+    <plurals name="expense_count">
+        <item quantity="one">%d expense</item>
+        <item quantity="other">%d expenses</item>
+    </plurals>
 
 </resources>

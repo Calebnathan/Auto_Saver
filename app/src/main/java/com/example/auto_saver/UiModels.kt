@@ -42,6 +42,15 @@ data class DateRange(
                 end = now.toString()
             )
         }
+
+        fun getLastNDays(days: Int): DateRange {
+            val now = java.time.LocalDate.now()
+            val clamped = days.coerceAtLeast(1)
+            return DateRange(
+                start = now.minusDays(clamped.toLong() - 1).toString(),
+                end = now.toString()
+            )
+        }
     }
 }
 
@@ -58,3 +67,7 @@ data class ExpenseWithCategory(
     val categoryName: String
 )
 
+data class DailySpendingPoint(
+    val date: String,
+    val total: Double
+)

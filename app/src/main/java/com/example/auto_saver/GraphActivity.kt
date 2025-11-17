@@ -3,6 +3,7 @@ package com.example.auto_saver
 import android.app.DatePickerDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -23,6 +24,7 @@ class GraphActivity : AppCompatActivity() {
 
     private lateinit var startDateButton: MaterialButton
     private lateinit var endDateButton: MaterialButton
+    private lateinit var selectedRangeText: TextView
     private lateinit var barChart: BarChart
     private lateinit var userPrefs: UserPreferences
     
@@ -45,6 +47,7 @@ class GraphActivity : AppCompatActivity() {
 
         startDateButton = findViewById(R.id.startDateButton)
         endDateButton = findViewById(R.id.endDateButton)
+        selectedRangeText = findViewById(R.id.tv_selected_range)
         barChart = findViewById(R.id.barChart)
 
         startDateButton.setOnClickListener { pickDate(isStart = true) }
@@ -70,6 +73,8 @@ class GraphActivity : AppCompatActivity() {
                 endDateButton.text = formattedDate
             }
 
+            updateSelectedRangeLabel()
+
             if (startDate != null && endDate != null) {
                 fetchDataAndDrawChart()
             }
@@ -90,6 +95,8 @@ class GraphActivity : AppCompatActivity() {
 
         val start = startDate ?: return
         val end = endDate ?: return
+
+        updateSelectedRangeLabel()
 
         lifecycleScope.launch {
             try {
@@ -162,5 +169,15 @@ class GraphActivity : AppCompatActivity() {
         barChart.description.isEnabled = false
         barChart.animateY(1000)
         barChart.invalidate()
+    }
+
+    private fun updateSelectedRangeLabel() {
+        val start = startDate
+        val end = endDate
+        if (start.isNullOrEmpty() || end.isNullOrEmpty()) {
+            selectedRangeText.text = ""
+        } else {
+            selectedRangeText.text = getString(R.string.select_date_range, start, end)
+        }
     }
 }
