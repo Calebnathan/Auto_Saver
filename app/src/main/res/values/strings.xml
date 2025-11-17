@@ -27,6 +27,8 @@
     <string name="goal_progress">Goal Progress</string>
     <string name="category_breakdown">Category Breakdown</string>
     <string name="recent_expenses">Recent Expenses</string>
+    <string name="view_dashboard">Dashboard</string>
+    <string name="view_categories">Categories</string>
     <string name="no_expenses">No Expenses</string>
     <string name="no_expenses_yet">No expenses yet</string>
     <string name="add_first_expense">Tap + to add your first expense</string>

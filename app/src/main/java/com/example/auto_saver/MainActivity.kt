@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
@@ -21,11 +22,13 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.auto_saver.adapters.GroupedExpenseAdapter
 import com.example.auto_saver.models.ExpenseListItem
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,6 +50,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvTotalSpent: TextView
     private lateinit var tvExpenseCount: TextView
     private lateinit var emptyStateLayout: LinearLayout
+    private lateinit var headerScroll: NestedScrollView
+    private lateinit var categoriesToolbar: LinearLayout
+    private lateinit var expensesContainer: FrameLayout
 
     // Goal progress views
     private lateinit var btnManageGoals: MaterialButton
@@ -58,6 +64,7 @@ class MainActivity : AppCompatActivity() {
 
     // Filter button
     private lateinit var btnFilter: MaterialButton
+    private lateinit var viewToggleGroup: MaterialButtonToggleGroup
 
     private lateinit var database: AppDatabase
     private lateinit var userPrefs: UserPreferences
@@ -69,6 +76,12 @@ class MainActivity : AppCompatActivity() {
     // Date filter state
     private var filterStartDate: String? = null
     private var filterEndDate: String? = null
+    private var currentViewMode = ViewMode.DASHBOARD
+
+    private enum class ViewMode {
+        DASHBOARD,
+        CATEGORIES
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +103,7 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerViews()
         setupGoalProgress()
         setupFilterButton()
+        setupViewToggle()
         loadCategories()
     }
 
@@ -120,6 +134,10 @@ class MainActivity : AppCompatActivity() {
 
         // Filter button
         btnFilter = findViewById(R.id.btn_filter)
+        viewToggleGroup = findViewById(R.id.view_toggle_group)
+        headerScroll = findViewById(R.id.header_scroll)
+        categoriesToolbar = findViewById(R.id.categories_toolbar)
+        expensesContainer = findViewById(R.id.expenses_container)
 
         loadUserProfile()
     }
@@ -318,6 +336,37 @@ class MainActivity : AppCompatActivity() {
     private fun setupFilterButton() {
         btnFilter.setOnClickListener {
             showFilterOptions()
+        }
+    }
+
+    private fun setupViewToggle() {
+        viewToggleGroup.check(R.id.btn_view_dashboard)
+        applyViewMode(ViewMode.DASHBOARD)
+
+        viewToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val mode = if (checkedId == R.id.btn_view_categories) {
+                ViewMode.CATEGORIES
+            } else {
+                ViewMode.DASHBOARD
+            }
+            applyViewMode(mode)
+        }
+    }
+
+    private fun applyViewMode(mode: ViewMode) {
+        currentViewMode = mode
+        when (mode) {
+            ViewMode.DASHBOARD -> {
+                headerScroll.visibility = View.VISIBLE
+                categoriesToolbar.visibility = View.GONE
+                expensesContainer.visibility = View.GONE
+            }
+            ViewMode.CATEGORIES -> {
+                headerScroll.visibility = View.GONE
+                categoriesToolbar.visibility = View.VISIBLE
+                expensesContainer.visibility = View.VISIBLE
+            }
         }
     }
 
