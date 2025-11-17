@@ -20,6 +20,85 @@ object SpendingAggregator {
         val expenseCount: Int
     )
 
+    data class PaginatedResult<T>(
+        val data: T,
+        val totalCount: Int,
+        val hasMore: Boolean
+    )
+
+    /**
+     * Aggregate by day with pagination support for large datasets
+     */
+    fun aggregateByDayPaginated(
+        expenses: List<ExpenseRecord>,
+        dateRange: DateRange,
+        limit: Int = 100,
+        offset: Int = 0
+    ): PaginatedResult<Map<String, Double>> {
+        val result = aggregateByDay(expenses, dateRange)
+        val entries = result.entries.toList()
+        val paginatedEntries = entries.drop(offset).take(limit)
+        
+        return PaginatedResult(
+            data = paginatedEntries.associate { it.key to it.value },
+            totalCount = entries.size,
+            hasMore = offset + limit < entries.size
+        )
+    }
+
+    /**
+     * Get top spending categories with limit
+     */
+    fun getTopCategories(
+        expenses: List<ExpenseRecord>,
+        dateRange: DateRange,
+        limit: Int = 5
+    ): List<CategoryTotal> {
+        return aggregateByCategory(expenses, dateRange)
+            .values
+            .sortedByDescending { it.total }
+            .take(limit)
+    }
+
+    /**
+     * Calculate statistics for a date range
+     */
+    fun calculateStatistics(
+        expenses: List<ExpenseRecord>,
+        dateRange: DateRange
+    ): SpendingStatistics {
+        val filtered = expenses.filter { expense ->
+            val date = expense.safeDate() ?: return@filter false
+            val start = LocalDate.parse(dateRange.start)
+            val end = LocalDate.parse(dateRange.end)
+            !date.isBefore(start) && !date.isAfter(end)
+        }
+
+        val total = filtered.sumOf { it.amount }
+        val dailyTotals = aggregateByDay(filtered, dateRange)
+        val nonZeroDays = dailyTotals.values.count { it > 0.0 }
+        
+        return SpendingStatistics(
+            totalSpent = total,
+            expenseCount = filtered.size,
+            averagePerExpense = if (filtered.isNotEmpty()) total / filtered.size else 0.0,
+            averagePerDay = if (nonZeroDays > 0) total / nonZeroDays else 0.0,
+            maxDailySpending = dailyTotals.values.maxOrNull() ?: 0.0,
+            minDailySpending = dailyTotals.values.filter { it > 0.0 }.minOrNull() ?: 0.0,
+            daysWithExpenses = nonZeroDays
+        )
+    }
+
+    data class SpendingStatistics(
+        val totalSpent: Double,
+        val expenseCount: Int,
+        val averagePerExpense: Double,
+        val averagePerDay: Double,
+        val maxDailySpending: Double,
+        val minDailySpending: Double,
+        val daysWithExpenses: Int
+    )
+
     fun aggregateByDay(
         expenses: List<ExpenseRecord>,
         dateRange: DateRange

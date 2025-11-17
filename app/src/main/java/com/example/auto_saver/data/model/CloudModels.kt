@@ -70,3 +70,39 @@ data class ExpenseRecord(
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )
+
+// ========================================
+// Race/Challenge Models
+// ========================================
+
+enum class ChallengeStatus {
+    PENDING,    // Created but not started
+    ACTIVE,     // In progress
+    COMPLETED,  // Ended, winner declared
+    CANCELLED   // Cancelled by creator
+}
+
+data class RaceChallenge(
+    val id: String,
+    val name: String,
+    val createdBy: String,
+    val createdByEmail: String,
+    val budget: Double,
+    val startDate: String,      // yyyy-MM-dd
+    val endDate: String,        // yyyy-MM-dd
+    val status: ChallengeStatus,
+    val participants: List<String> = emptyList(),  // participant UIDs
+    val inviteCode: String = "",  // 6-char code for joining
+    val createdAt: Long = 0L,
+    val updatedAt: Long = 0L
+)
+
+data class RaceParticipant(
+    val uid: String,
+    val email: String,
+    val displayName: String? = null,
+    val totalSpent: Double = 0.0,
+    val rank: Int = 1,
+    val joinedAt: Long = 0L,
+    val lastSyncedAt: Long = 0L
+)

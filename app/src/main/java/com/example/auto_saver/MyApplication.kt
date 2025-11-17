@@ -29,6 +29,9 @@ class MyApplication : Application() {
 
         lateinit var friendRepository: UnifiedFriendRepository
             private set
+
+        lateinit var raceRepository: UnifiedRaceRepository
+            private set
             
         lateinit var userRemoteDataSource: UserRemoteDataSource
             private set
@@ -37,6 +40,7 @@ class MyApplication : Application() {
         private lateinit var expenseRemoteDataSource: ExpenseRemoteDataSource
         private lateinit var goalRemoteDataSource: GoalRemoteDataSource
         private lateinit var friendRemoteDataSource: FriendRemoteDataSource
+        private lateinit var raceRemoteDataSource: RaceRemoteDataSource
 
         fun cleanupFirestoreListeners() {
             if (::categoryRemoteDataSource.isInitialized) {
@@ -50,6 +54,9 @@ class MyApplication : Application() {
             }
             if (::friendRemoteDataSource.isInitialized) {
                 (friendRemoteDataSource as? FirestoreFriendRemoteDataSource)?.cleanup()
+            }
+            if (::raceRemoteDataSource.isInitialized) {
+                (raceRemoteDataSource as? FirestoreRaceRemoteDataSource)?.cleanup()
             }
         }
     }
@@ -75,6 +82,7 @@ class MyApplication : Application() {
         expenseRemoteDataSource = FirestoreExpenseRemoteDataSource()
         goalRemoteDataSource = FirestoreGoalRemoteDataSource()
         friendRemoteDataSource = FirestoreFriendRemoteDataSource()
+        raceRemoteDataSource = FirestoreRaceRemoteDataSource()
         userRemoteDataSource = FirestoreUserRemoteDataSource()
         
         // Initialize unified repositories
@@ -102,6 +110,12 @@ class MyApplication : Application() {
         )
 
         friendRepository = FirestoreFriendRepository(friendRemoteDataSource)
+
+        raceRepository = FirestoreRaceRepository(
+            remoteDataSource = raceRemoteDataSource,
+            expenseRepository = expenseRepository,
+            dispatcher = Dispatchers.IO
+        )
 
         // Apply saved theme preference on app start
         val nightMode = if (userPreferences.isDarkModeEnabled()) {

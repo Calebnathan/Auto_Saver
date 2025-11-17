@@ -61,7 +61,7 @@ class GraphViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    private val expenses: StateFlow<List<ExpenseRecord>> = dateRange
+    val expenses: StateFlow<List<ExpenseRecord>> = dateRange
         .flatMapLatest { range ->
             if (uid.isNotEmpty()) {
                 expenseRepository.observeExpenses(uid, range.start, range.end)

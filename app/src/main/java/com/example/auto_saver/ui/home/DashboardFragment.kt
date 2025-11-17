@@ -21,6 +21,7 @@ import com.example.auto_saver.ui.components.SpendingGraphView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class DashboardFragment : Fragment() {
 
@@ -46,12 +47,18 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
         val graphView = view.findViewById<SpendingGraphView>(R.id.view_spending_graph)
         val graphSubtitle = view.findViewById<TextView>(R.id.tv_spending_graph_subtitle)
         val metricToggle = view.findViewById<MaterialButtonToggleGroup>(R.id.metric_toggle)
         val totalSpentText = view.findViewById<TextView>(R.id.tv_total_spent_value)
         val expenseCountText = view.findViewById<TextView>(R.id.tv_expense_count_value)
         val goalProgressText = view.findViewById<TextView>(R.id.tv_goal_progress_value)
+        
+        // Quick stats views
+        val avgDailyStat = view.findViewById<TextView>(R.id.tv_avg_daily_stat)
+        val topCategoryStat = view.findViewById<TextView>(R.id.tv_top_category_stat)
+        val daysUntilResetStat = view.findViewById<TextView>(R.id.tv_days_until_reset_stat)
 
         val graphCard = view.findViewById<MaterialCardView>(R.id.card_spending_graph)
         val btnViewDetails = view.findViewById<MaterialButton>(R.id.btn_view_details)
@@ -59,6 +66,22 @@ class DashboardFragment : Fragment() {
         val btnManageGoals = view.findViewById<MaterialButton>(R.id.btn_manage_goals)
         val btnViewAnalytics = view.findViewById<MaterialButton>(R.id.btn_view_analytics)
         val btnQuickAddExpense = view.findViewById<MaterialButton>(R.id.btn_quick_add_expense)
+
+        // Setup swipe-to-refresh
+        swipeRefresh.setOnRefreshListener {
+            // Force data refresh by re-setting the current range
+            when (rangeToggle.checkedButtonId) {
+                R.id.btn_range_7 -> dashboardViewModel.setLast7Days()
+                R.id.btn_range_30 -> dashboardViewModel.setLast30Days()
+                R.id.btn_range_90 -> dashboardViewModel.setLast90Days()
+                else -> dashboardViewModel.setLast30Days()
+            }
+            
+            // Stop refresh animation after a short delay
+            view.postDelayed({
+                swipeRefresh.isRefreshing = false
+            }, 1000)
+        }
 
         // Default to 30-day range to match ViewModel initial state
         rangeToggle.check(R.id.btn_range_30)
@@ -127,6 +150,18 @@ class DashboardFragment : Fragment() {
 
         btnQuickAddExpense.setOnClickListener {
             startActivity(Intent(requireContext(), AddExpenseActivity::class.java))
+        }
+
+        dashboardViewModel.quickStats.collectWithLifecycle(viewLifecycleOwner) { stats ->
+            if (stats != null) {
+                avgDailyStat.text = getString(R.string.currency_format, stats.averageDailySpending)
+                topCategoryStat.text = stats.topCategoryId ?: getString(R.string.no_data)
+                daysUntilResetStat.text = stats.daysUntilBudgetReset.toString()
+            } else {
+                avgDailyStat.text = getString(R.string.currency_format, 0.0)
+                topCategoryStat.text = getString(R.string.no_data)
+                daysUntilResetStat.text = "0"
+            }
         }
 
         dashboardViewModel.graphState.collectWithLifecycle(viewLifecycleOwner) { state ->

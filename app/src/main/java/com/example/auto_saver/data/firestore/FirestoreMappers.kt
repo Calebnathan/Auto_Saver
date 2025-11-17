@@ -1,11 +1,14 @@
 package com.example.auto_saver.data.firestore
 
 import com.example.auto_saver.data.model.CategoryRecord
+import com.example.auto_saver.data.model.ChallengeStatus
 import com.example.auto_saver.data.model.ExpenseRecord
 import com.example.auto_saver.data.model.FriendProfile
 import com.example.auto_saver.data.model.FriendRequest
 import com.example.auto_saver.data.model.FriendRequestStatus
 import com.example.auto_saver.data.model.GoalRecord
+import com.example.auto_saver.data.model.RaceChallenge
+import com.example.auto_saver.data.model.RaceParticipant
 import com.example.auto_saver.data.model.UserProfile
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
@@ -149,6 +152,82 @@ fun DocumentSnapshot.toFriendProfile(): FriendProfile? {
         since = getTimestamp("since").toEpochMilli()
     )
 }
+
+fun DocumentSnapshot.toRaceChallenge(): RaceChallenge? {
+    if (!exists()) return null
+    val name = getString("name") ?: return null
+    val createdBy = getString("createdBy") ?: return null
+    val createdByEmail = getString("createdByEmail") ?: ""
+    val budget = getNumber("budget")?.toDouble() ?: return null
+    val startDate = getString("startDate") ?: return null
+    val endDate = getString("endDate") ?: return null
+    val statusValue = getString("status") ?: ChallengeStatus.PENDING.name
+    val participants = get("participants") as? List<*>
+    val participantsList = participants?.filterIsInstance<String>() ?: emptyList()
+    val inviteCode = getString("inviteCode") ?: ""
+    
+    return RaceChallenge(
+        id = id,
+        name = name,
+        createdBy = createdBy,
+        createdByEmail = createdByEmail,
+        budget = budget,
+        startDate = startDate,
+        endDate = endDate,
+        status = runCatching { ChallengeStatus.valueOf(statusValue) }.getOrDefault(ChallengeStatus.PENDING),
+        participants = participantsList,
+        inviteCode = inviteCode,
+        createdAt = getTimestamp("createdAt").toEpochMilli(),
+        updatedAt = getTimestamp("updatedAt").toEpochMilli()
+    )
+}
+
+fun DocumentSnapshot.toRaceParticipant(): RaceParticipant? {
+    if (!exists()) return null
+    val uid = getString("uid") ?: id
+    val email = getString("email") ?: ""
+    val totalSpent = getNumber("totalSpent")?.toDouble() ?: 0.0
+    val rank = getNumber("rank")?.toInt() ?: 1
+    
+    return RaceParticipant(
+        uid = uid,
+        email = email,
+        displayName = getString("displayName"),
+        totalSpent = totalSpent,
+        rank = rank,
+        joinedAt = getTimestamp("joinedAt").toEpochMilli(),
+        lastSyncedAt = getTimestamp("lastSyncedAt").toEpochMilli()
+    )
+}
+
+fun RaceChallenge.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
+    hashMapOf<String, Any?>(
+        "name" to name,
+        "createdBy" to createdBy,
+        "createdByEmail" to createdByEmail,
+        "budget" to budget,
+        "startDate" to startDate,
+        "endDate" to endDate,
+        "status" to status.name,
+        "participants" to participants,
+        "inviteCode" to inviteCode,
+        "updatedAt" to FieldValue.serverTimestamp()
+    ).apply {
+        if (isNew) put("createdAt", FieldValue.serverTimestamp())
+    }
+
+fun RaceParticipant.toFirestorePayload(isNew: Boolean): Map<String, Any?> =
+    hashMapOf<String, Any?>(
+        "uid" to uid,
+        "email" to email,
+        "displayName" to displayName,
+        "totalSpent" to totalSpent,
+        "rank" to rank,
+        "lastSyncedAt" to FieldValue.serverTimestamp(),
+        "updatedAt" to FieldValue.serverTimestamp()
+    ).apply {
+        if (isNew) put("joinedAt", FieldValue.serverTimestamp())
+    }
 
 private fun DocumentSnapshot.getNumber(key: String): Number? = when (val value = get(key)) {
     is Number -> value

@@ -12,8 +12,10 @@ import com.example.auto_saver.data.repository.UnifiedGoalRepository
 import com.example.auto_saver.ui.components.GraphDataProvider
 import com.example.auto_saver.ui.components.GraphMetric
 import com.example.auto_saver.ui.components.GraphUiState
+import com.example.auto_saver.utils.SpendingAggregator
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -140,6 +142,31 @@ class DashboardViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // Quick stats for dashboard
+    val quickStats: StateFlow<QuickStats?> = combine(
+        expenses,
+        dateRange
+    ) { currentExpenses, range ->
+        if (uid.isEmpty() || currentExpenses.isEmpty()) return@combine null
+
+        val statistics = SpendingAggregator.calculateStatistics(currentExpenses, range)
+        val topCategories = SpendingAggregator.getTopCategories(currentExpenses, range, limit = 1)
+        val topCategory = topCategories.firstOrNull()
+
+        val today = LocalDate.now()
+        val endOfMonth = today.withDayOfMonth(today.lengthOfMonth())
+        val daysUntilReset = ChronoUnit.DAYS.between(today, endOfMonth).toInt() + 1
+
+        QuickStats(
+            averageDailySpending = statistics.averagePerDay,
+            topCategoryId = topCategory?.categoryId,
+            topCategoryAmount = topCategory?.total ?: 0.0,
+            daysUntilBudgetReset = daysUntilReset,
+            maxDailySpending = statistics.maxDailySpending,
+            daysWithExpenses = statistics.daysWithExpenses
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val graphState: StateFlow<GraphUiState> = combine(
         expenses,
         previousExpenses,
@@ -192,6 +219,15 @@ class DashboardViewModel(
         }
     }
 }
+
+data class QuickStats(
+    val averageDailySpending: Double,
+    val topCategoryId: String?,
+    val topCategoryAmount: Double,
+    val daysUntilBudgetReset: Int,
+    val maxDailySpending: Double,
+    val daysWithExpenses: Int
+)
 
 class DashboardViewModelFactory(
     private val expenseRepository: UnifiedExpenseRepository,

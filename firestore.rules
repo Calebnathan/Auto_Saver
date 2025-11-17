@@ -137,5 +137,52 @@ service cloud.firestore {
         allow update, delete: if isOwner(userId);
       }
     }
+
+    // Challenges collection (Race feature)
+    match /challenges/{challengeId} {
+      function isParticipant() {
+        return isAuthenticated() && request.auth.uid in resource.data.participants;
+      }
+
+      function isCreator() {
+        return isAuthenticated() && request.auth.uid == resource.data.createdBy;
+      }
+
+      // Anyone authenticated can read challenges they're part of
+      allow read: if isParticipant();
+
+      // Only authenticated users can create challenges
+      allow create: if isAuthenticated()
+                    && request.auth.uid == request.resource.data.createdBy
+                    && request.resource.data.participants.hasOnly([request.auth.uid])
+                    && request.resource.data.status == 'PENDING'
+                    && hasRequiredFields(['name', 'createdBy', 'createdByEmail', 'budget', 'startDate', 'endDate', 'status', 'participants', 'inviteCode'])
+                    && isValidString('name', 1, 100)
+                    && isValidNumber('budget', 0.01)
+                    && isValidString('startDate', 10, 10)
+                    && isValidString('endDate', 10, 10)
+                    && isValidString('inviteCode', 6, 6);
+
+      // Creator can update status; participants can update to join
+      allow update: if isAuthenticated()
+                    && (isCreator() || request.auth.uid in request.resource.data.participants);
+
+      // Only creator can delete
+      allow delete: if isCreator();
+
+      // Participants subcollection
+      match /participants/{participantUid} {
+        function isChallengeParticipant() {
+          return isAuthenticated() 
+                 && request.auth.uid in get(/databases/$(database)/documents/challenges/$(challengeId)).data.participants;
+        }
+
+        // All challenge members can read participant data
+        allow read: if isChallengeParticipant();
+
+        // Only the participant can write their own data
+        allow write: if isAuthenticated() && request.auth.uid == participantUid;
+      }
+    }
   }
 }

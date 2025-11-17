@@ -155,6 +155,7 @@
     <string name="graph_share_no_data">Nothing to share yet. Add some expenses first.</string>
     <string name="graph_range_short_format">%1$s → %2$s</string>
     <string name="graph_loading_message">Loading latest spending insights...</string>
+    <string name="export_csv">Export CSV</string>
 
     <!-- Dashboard Specific -->
     <string name="no_goals_set">No monthly goals set yet</string>
@@ -166,6 +167,13 @@
     <string name="range_7_days">7D</string>
     <string name="range_30_days">30D</string>
     <string name="range_90_days">90D</string>
+    
+    <!-- Quick Stats -->
+    <string name="quick_stats">Quick Stats</string>
+    <string name="avg_daily">Avg Daily</string>
+    <string name="top_category">Top Category</string>
+    <string name="days_until_reset">Days Until Reset</string>
+    <string name="no_data">N/A</string>
 
     <plurals name="expense_count">
         <item quantity="one">%d expense</item>
@@ -175,6 +183,63 @@
     <plurals name="friend_count">
         <item quantity="one">%d friend</item>
         <item quantity="other">%d friends</item>
+    </plurals>
+
+    <!-- Race/Challenge Feature -->
+    <string name="race_title">Challenges</string>
+    <string name="create_challenge">Create Challenge</string>
+    <string name="join_by_code">Join by Code</string>
+    <string name="active_challenges">Active Challenges</string>
+    <string name="completed_challenges">Completed</string>
+    <string name="no_challenges">No Challenges Yet</string>
+    <string name="no_challenges_message">Start a budgeting challenge with friends!</string>
+    <string name="challenge_name">Challenge Name</string>
+    <string name="budget_limit">Budget Limit</string>
+    <string name="start_date_label">Start Date</string>
+    <string name="end_date_label">End Date</string>
+    <string name="create">Create</string>
+    <string name="invite_code">Invite Code</string>
+    <string name="join">Join</string>
+    <string name="challenge_detail">Challenge Details</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="your_rank">Your Rank</string>
+    <string name="total_spending">Total Spent</string>
+    <string name="budget_remaining">Remaining</string>
+    <string name="share_code">Share Code</string>
+    <string name="leave_challenge">Leave Challenge</string>
+    <string name="delete_challenge">Delete Challenge</string>
+    <string name="start_challenge">Start Challenge</string>
+    <string name="end_challenge">End Challenge</string>
+    <string name="challenge_status_pending">Pending</string>
+    <string name="challenge_status_active">Active</string>
+    <string name="challenge_status_completed">Completed</string>
+    <string name="challenge_status_cancelled">Cancelled</string>
+    <string name="sync_spending">Sync Spending</string>
+    <string name="challenge_created">Challenge created successfully!</string>
+    <string name="challenge_joined">Joined challenge successfully!</string>
+    <string name="challenge_left">Left challenge</string>
+    <string name="challenge_deleted">Challenge deleted</string>
+    <string name="spending_synced">Spending synced</string>
+    <string name="error_challenge_name_required">Challenge name is required</string>
+    <string name="error_budget_invalid">Budget must be greater than 0</string>
+    <string name="error_date_invalid">End date must be after start date</string>
+    <string name="error_code_required">Invite code is required</string>
+    <string name="error_not_logged_in">Not logged in</string>
+    <string name="error_create_challenge">Failed to create challenge</string>
+    <string name="error_join_challenge">Failed to join challenge</string>
+    <string name="error_leave_challenge">Failed to leave challenge</string>
+    <string name="error_delete_challenge">Failed to delete challenge</string>
+    <string name="error_sync_spending">Failed to sync spending</string>
+    <string name="challenge_dates_format">%1$s - %2$s</string>
+    <string name="participant_count">%d participants</string>
+    <string name="rank_format">#%d</string>
+    <string name="under_budget">Under Budget</string>
+    <string name="over_budget">Over Budget</string>
+    <string name="invite_code_label">Code: %s</string>
+
+    <plurals name="challenge_count">
+        <item quantity="one">%d challenge</item>
+        <item quantity="other">%d challenges</item>
     </plurals>
 
 </resources>

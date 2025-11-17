@@ -19,6 +19,7 @@ import com.example.auto_saver.ui.components.GraphUiState
 import com.example.auto_saver.ui.components.SpendingGraphView
 import com.example.auto_saver.ui.graph.GraphViewModel
 import com.example.auto_saver.ui.graph.GraphViewModelFactory
+import com.example.auto_saver.utils.CSVExportHelper
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -44,12 +45,14 @@ class GraphActivity : AppCompatActivity() {
     private lateinit var graphRangeLabel: TextView
     private lateinit var comparisonSummary: TextView
     private lateinit var shareButton: MaterialButton
+    private lateinit var exportCsvButton: MaterialButton
     private lateinit var graphView: SpendingGraphView
     private lateinit var legendCurrentIndicator: View
     private lateinit var legendPreviousIndicator: View
 
     private var lastRenderData: GraphRenderData? = null
     private var latestRange: DateRange? = null
+    private var latestExpenses: List<com.example.auto_saver.data.model.ExpenseRecord> = emptyList()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +69,7 @@ class GraphActivity : AppCompatActivity() {
         graphRangeLabel = findViewById(R.id.tv_graph_range_label)
         comparisonSummary = findViewById(R.id.tv_comparison_summary)
         shareButton = findViewById(R.id.btn_share_graph)
+        exportCsvButton = findViewById(R.id.btn_export_csv)
         graphView = findViewById(R.id.view_full_graph)
         legendCurrentIndicator = findViewById(R.id.legend_current_indicator)
         legendPreviousIndicator = findViewById(R.id.legend_previous_indicator)
@@ -87,6 +91,7 @@ class GraphActivity : AppCompatActivity() {
         }
 
         shareButton.setOnClickListener { shareSnapshot() }
+        exportCsvButton.setOnClickListener { exportToCSV() }
 
         tintLegendIndicators()
         observeViewModel()
@@ -100,6 +105,14 @@ class GraphActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                graphViewModel.expenses.collect { expenses ->
+                    latestExpenses = expenses
+                }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 graphViewModel.dateRange.collect { range ->
@@ -131,12 +144,14 @@ class GraphActivity : AppCompatActivity() {
                             val previous = getString(R.string.currency_format, state.data.comparisonTotal)
                             comparisonSummary.text = getString(R.string.graph_comparison_format, current, previous)
                             shareButton.isEnabled = true
+                            exportCsvButton.isEnabled = true
                         }
                         GraphUiState.Empty -> {
                             lastRenderData = null
                             graphRangeLabel.text = getString(R.string.graph_empty_state)
                             comparisonSummary.text = getString(R.string.graph_no_data_message)
                             shareButton.isEnabled = false
+                            exportCsvButton.isEnabled = false
                             latestRange?.let {
                                 selectedRangeText.text = getString(
                                     R.string.graph_range_short_format,
@@ -150,6 +165,7 @@ class GraphActivity : AppCompatActivity() {
                             graphRangeLabel.text = getString(R.string.graph_error_state)
                             comparisonSummary.text = getString(R.string.graph_error_state)
                             shareButton.isEnabled = false
+                            exportCsvButton.isEnabled = false
                             Toast.makeText(this@GraphActivity, state.message, Toast.LENGTH_SHORT).show()
                             latestRange?.let {
                                 selectedRangeText.text = getString(
@@ -162,6 +178,7 @@ class GraphActivity : AppCompatActivity() {
                         GraphUiState.Loading -> {
                             graphRangeLabel.text = getString(R.string.spending_graph_subtitle)
                             shareButton.isEnabled = false
+                            exportCsvButton.isEnabled = false
                             comparisonSummary.text = getString(R.string.graph_loading_message)
                             latestRange?.let {
                                 selectedRangeText.text = getString(
@@ -227,6 +244,25 @@ class GraphActivity : AppCompatActivity() {
         }
 
         startActivity(Intent.createChooser(intent, getString(R.string.graph_share_subject)))
+    }
+
+    private fun exportToCSV() {
+        val data = lastRenderData ?: run {
+            Toast.makeText(this, R.string.graph_share_no_data, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = CSVExportHelper.exportGraphDataToCSV(
+            context = this,
+            data = data,
+            expenses = latestExpenses
+        )
+
+        if (intent != null) {
+            startActivity(Intent.createChooser(intent, "Export CSV"))
+        } else {
+            Toast.makeText(this, "Failed to export CSV", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun resolveThemeColor(attr: Int): Int {
