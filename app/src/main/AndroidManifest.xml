@@ -62,11 +62,6 @@
             android:name=".ProfileActivity"
             android:exported="false" />
 
-        <!-- Old Add User Activity (kept for backward compatibility) -->
-        <activity
-            android:name=".AddUserActivity"
-            android:exported="false" />
-
         <!-- Add Expense Screen -->
         <activity
             android:name=".AddExpenseActivity"

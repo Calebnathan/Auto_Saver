@@ -70,6 +70,8 @@ class UnifiedGoalRepositoryTest {
     fun `observeGoals falls back to cache on Firestore error`() = runTest {
         whenever(remoteDataSource.observeGoals(testUid))
             .thenReturn(kotlinx.coroutines.flow.flow { throw RuntimeException("Network error") })
+        whenever(goalDao.getGoalsByUser(testLegacyUserId))
+            .thenReturn(emptyList())
 
         val result = repository.observeGoals(testUid).first()
 

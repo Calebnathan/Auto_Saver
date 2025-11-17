@@ -108,7 +108,7 @@ class FirestoreFirstExpenseRepository(
         when (val result = remoteDataSource.upsertExpense(uid, finalExpense)) {
             is FirestoreResult.Success -> {
                 cacheExpense(finalExpense)
-                Result.success(expenseId)
+                Result.success(result.data)
             }
             is FirestoreResult.Error -> {
                 Result.failure(result.throwable)

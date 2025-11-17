@@ -17,6 +17,9 @@ interface GoalDao {
     @Query("SELECT * FROM goal_table WHERE user_id = :userId AND month = :month LIMIT 1")
     suspend fun getGoalForMonth(userId: Int, month: String): Goal?
 
+    @Query("SELECT * FROM goal_table WHERE user_id = :userId")
+    suspend fun getGoalsByUser(userId: Int): List<Goal>
+
     // Alias for consistency
     suspend fun getGoalByMonth(userId: Int, month: String): Goal? = getGoalForMonth(userId, month)
 }
