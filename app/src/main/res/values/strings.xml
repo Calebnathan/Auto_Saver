@@ -90,4 +90,28 @@
     <string name="currency_format">$%.2f</string>
     <string name="percentage_format">%.0f%%</string>
 
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_race">Race</string>
+    <string name="nav_social">Social</string>
+
+    <!-- Placeholder Messages -->
+    <string name="under_construction">Under Construction</string>
+    <string name="coming_soon">Coming Soon</string>
+    <string name="feature_description_race">Compete with friends in budgeting challenges. See who can save more!</string>
+    <string name="feature_description_social">Create collaborative savings goals with friends and family.</string>
+
+    <!-- Graph Related -->
+    <string name="spending_graph">Spending Graph</string>
+    <string name="view_details">View Details</string>
+    <string name="daily">Daily</string>
+    <string name="weekly">Weekly</string>
+    <string name="monthly">Monthly</string>
+    <string name="yearly">Yearly</string>
+    <string name="last_7_days">Last 7 Days</string>
+    <string name="last_14_days">Last 14 Days</string>
+    <string name="last_90_days">Last 90 Days</string>
+    <string name="select_date_range">Select Date Range</string>
+    <string name="no_data_available">No data available for selected period</string>
+
 </resources>

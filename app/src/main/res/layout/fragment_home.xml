@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_large"
+    android:background="?attr/colorSurface">
+
+    <TextView
+        android:id="@+id/tv_placeholder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Home Fragment\n\nPlaceholder"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_body_large" />
+
+</LinearLayout>

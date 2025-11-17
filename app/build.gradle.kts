@@ -104,6 +104,12 @@ dependencies {
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
 
+    // ViewPager2 for tab navigation
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+    // Fragment KTX for modern fragment management
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+
     // Android 12+ Splash Screen API
     implementation("androidx.core:core-splashscreen:1.0.1")
 

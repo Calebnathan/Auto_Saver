@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Text sizes for tablets (use sp for accessibility) -->
+    <dimen name="text_size_headline_large">42sp</dimen>
+    <dimen name="text_size_headline_medium">36sp</dimen>
+    <dimen name="text_size_title_large">28sp</dimen>
+    <dimen name="text_size_title_medium">24sp</dimen>
+    <dimen name="text_size_body_large">20sp</dimen>
+    <dimen name="text_size_body_medium">18sp</dimen>
+    <dimen name="text_size_body_small">16sp</dimen>
+
+    <!-- Spacing for larger screens -->
+    <dimen name="padding_small">16dp</dimen>
+    <dimen name="padding_medium">24dp</dimen>
+    <dimen name="padding_large">32dp</dimen>
+    <dimen name="margin_small">16dp</dimen>
+    <dimen name="margin_medium">24dp</dimen>
+    <dimen name="margin_large">32dp</dimen>
+
+    <!-- Toolbar and Navigation -->
+    <dimen name="toolbar_height">64dp</dimen>
+    <dimen name="profile_icon_size">48dp</dimen>
+    <dimen name="toolbar_icon_size">28dp</dimen>
+    <dimen name="toolbar_padding_horizontal">16dp</dimen>
+    <dimen name="bottom_nav_icon_size">28dp</dimen>
+
+    <!-- Card and UI elements for tablets -->
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_elevation">6dp</dimen>
+    <dimen name="fab_size">64dp</dimen>
+    <dimen name="icon_size">32dp</dimen>
+
+    <!-- Category/Expense item specific -->
+    <dimen name="item_card_padding">16dp</dimen>
+    <dimen name="item_card_margin_vertical">8dp</dimen>
+    <dimen name="item_card_margin_horizontal">16dp</dimen>
+
+    <!-- Minimum touch target size for accessibility -->
+    <dimen name="min_touch_target">48dp</dimen>
+</resources>

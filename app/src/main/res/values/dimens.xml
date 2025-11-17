@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Text sizes -->
+    <!-- Text sizes (use sp for accessibility) -->
     <dimen name="text_size_headline_large">36sp</dimen>
     <dimen name="text_size_headline_medium">30sp</dimen>
     <dimen name="text_size_title_large">24sp</dimen>
@@ -9,22 +9,32 @@
     <dimen name="text_size_body_medium">16sp</dimen>
     <dimen name="text_size_body_small">14sp</dimen>
 
-    <!-- Spacing -->
-    <dimen name="padding_small">12dp</dimen>
-    <dimen name="padding_medium">18dp</dimen>
+    <!-- Spacing (responsive to screen density) -->
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
     <dimen name="padding_large">24dp</dimen>
-    <dimen name="margin_small">12dp</dimen>
-    <dimen name="margin_medium">18dp</dimen>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
     <dimen name="margin_large">24dp</dimen>
 
+    <!-- Toolbar and Navigation -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="profile_icon_size">40dp</dimen>
+    <dimen name="toolbar_icon_size">24dp</dimen>
+    <dimen name="toolbar_padding_horizontal">8dp</dimen>
+    <dimen name="bottom_nav_icon_size">24dp</dimen>
+
     <!-- Card and UI elements -->
-    <dimen name="card_corner_radius">16dp</dimen>
-    <dimen name="card_elevation">6dp</dimen>
-    <dimen name="fab_size">64dp</dimen>
-    <dimen name="icon_size">36dp</dimen>
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="fab_size">56dp</dimen>
+    <dimen name="icon_size">24dp</dimen>
 
     <!-- Category/Expense item specific -->
-    <dimen name="item_card_padding">14dp</dimen>
-    <dimen name="item_card_margin_vertical">6dp</dimen>
-    <dimen name="item_card_margin_horizontal">12dp</dimen>
+    <dimen name="item_card_padding">12dp</dimen>
+    <dimen name="item_card_margin_vertical">4dp</dimen>
+    <dimen name="item_card_margin_horizontal">8dp</dimen>
+
+    <!-- Minimum touch target size for accessibility -->
+    <dimen name="min_touch_target">48dp</dimen>
 </resources>
