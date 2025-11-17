@@ -34,7 +34,7 @@ android {
                 val keystoreProperties = Properties()
                 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
                 
-                storeFile = file(keystoreProperties["storeFile"].toString())
+                storeFile = rootProject.file(keystoreProperties["storeFile"].toString())
                 storePassword = keystoreProperties["storePassword"].toString()
                 keyAlias = keystoreProperties["keyAlias"].toString()
                 keyPassword = keystoreProperties["keyPassword"].toString()
@@ -56,11 +56,8 @@ android {
                 "proguard-rules.pro"
             )
             
-            // Apply signing config if available
-            val releaseSigningConfig = signingConfigs.findByName("release")
-            if (releaseSigningConfig?.storeFile?.exists() == true) {
-                signingConfig = releaseSigningConfig
-            }
+            // Apply signing config - will use release config if keystore is available
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
