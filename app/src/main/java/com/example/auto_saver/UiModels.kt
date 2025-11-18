@@ -79,13 +79,3 @@ data class SpendingSummary(
     val percentageOfGoal: Float,
     val isOverBudget: Boolean
 )
-
-data class ExpenseWithCategory(
-    val expense: Expense,
-    val categoryName: String
-)
-
-data class DailySpendingPoint(
-    val date: String,
-    val total: Double
-)
